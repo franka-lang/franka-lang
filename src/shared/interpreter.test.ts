@@ -12,7 +12,7 @@ describe('FrankaInterpreter', () => {
     it('should execute print operation', () => {
       const program = {
         program: { name: 'Test' },
-        operations: [{ operation: 'print', value: 'Hello, World!' }],
+        operations: [{ print: 'Hello, World!' }],
       };
 
       const output = interpreter.execute(program);
@@ -23,8 +23,8 @@ describe('FrankaInterpreter', () => {
       const program = {
         program: { name: 'Test' },
         operations: [
-          { operation: 'assign', variable: 'message', value: 'Hello' },
-          { operation: 'print', value: '$message' },
+          { assign: { variable: 'message', value: 'Hello' } },
+          { print: '$message' },
         ],
       };
 
@@ -40,14 +40,14 @@ describe('FrankaInterpreter', () => {
         variables: { greeting: 'Hello', name: 'World' },
         operations: [
           {
-            operation: 'assign',
-            variable: 'message',
-            value: {
-              operation: 'concat',
-              values: ['$greeting', ', ', '$name', '!'],
+            assign: {
+              variable: 'message',
+              value: {
+                concat: ['$greeting', ', ', '$name', '!'],
+              },
             },
           },
-          { operation: 'print', value: '$message' },
+          { print: '$message' },
         ],
       };
 
@@ -60,11 +60,12 @@ describe('FrankaInterpreter', () => {
         program: { name: 'Test' },
         operations: [
           {
-            operation: 'assign',
-            variable: 'upper',
-            value: { operation: 'uppercase', value: 'hello' },
+            assign: {
+              variable: 'upper',
+              value: { uppercase: 'hello' },
+            },
           },
-          { operation: 'print', value: '$upper' },
+          { print: '$upper' },
         ],
       };
 
@@ -77,11 +78,12 @@ describe('FrankaInterpreter', () => {
         program: { name: 'Test' },
         operations: [
           {
-            operation: 'assign',
-            variable: 'lower',
-            value: { operation: 'lowercase', value: 'HELLO' },
+            assign: {
+              variable: 'lower',
+              value: { lowercase: 'HELLO' },
+            },
           },
-          { operation: 'print', value: '$lower' },
+          { print: '$lower' },
         ],
       };
 
@@ -94,11 +96,12 @@ describe('FrankaInterpreter', () => {
         program: { name: 'Test' },
         operations: [
           {
-            operation: 'assign',
-            variable: 'len',
-            value: { operation: 'length', value: 'Hello' },
+            assign: {
+              variable: 'len',
+              value: { length: 'Hello' },
+            },
           },
-          { operation: 'print', value: '$len' },
+          { print: '$len' },
         ],
       };
 
@@ -111,11 +114,12 @@ describe('FrankaInterpreter', () => {
         program: { name: 'Test' },
         operations: [
           {
-            operation: 'assign',
-            variable: 'sub',
-            value: { operation: 'substring', value: 'Hello World', start: 0, end: 5 },
+            assign: {
+              variable: 'sub',
+              value: { substring: { value: 'Hello World', start: 0, end: 5 } },
+            },
           },
-          { operation: 'print', value: '$sub' },
+          { print: '$sub' },
         ],
       };
 
@@ -130,11 +134,12 @@ describe('FrankaInterpreter', () => {
         program: { name: 'Test' },
         operations: [
           {
-            operation: 'assign',
-            variable: 'result',
-            value: { operation: 'and', values: [true, true] },
+            assign: {
+              variable: 'result',
+              value: { and: [true, true] },
+            },
           },
-          { operation: 'print', value: '$result' },
+          { print: '$result' },
         ],
       };
 
@@ -147,11 +152,12 @@ describe('FrankaInterpreter', () => {
         program: { name: 'Test' },
         operations: [
           {
-            operation: 'assign',
-            variable: 'result',
-            value: { operation: 'or', values: [false, true] },
+            assign: {
+              variable: 'result',
+              value: { or: [false, true] },
+            },
           },
-          { operation: 'print', value: '$result' },
+          { print: '$result' },
         ],
       };
 
@@ -164,11 +170,12 @@ describe('FrankaInterpreter', () => {
         program: { name: 'Test' },
         operations: [
           {
-            operation: 'assign',
-            variable: 'result',
-            value: { operation: 'not', value: false },
+            assign: {
+              variable: 'result',
+              value: { not: false },
+            },
           },
-          { operation: 'print', value: '$result' },
+          { print: '$result' },
         ],
       };
 
@@ -182,11 +189,12 @@ describe('FrankaInterpreter', () => {
         variables: { name: 'alice' },
         operations: [
           {
-            operation: 'assign',
-            variable: 'result',
-            value: { operation: 'equals', left: '$name', right: 'alice' },
+            assign: {
+              variable: 'result',
+              value: { equals: { left: '$name', right: 'alice' } },
+            },
           },
-          { operation: 'print', value: '$result' },
+          { print: '$result' },
         ],
       };
 
@@ -201,10 +209,11 @@ describe('FrankaInterpreter', () => {
         program: { name: 'Test' },
         operations: [
           {
-            operation: 'if',
-            condition: true,
-            then: [{ operation: 'print', value: 'True branch' }],
-            else: [{ operation: 'print', value: 'False branch' }],
+            if: {
+              condition: true,
+              then: [{ print: 'True branch' }],
+              else: [{ print: 'False branch' }],
+            },
           },
         ],
       };
@@ -218,10 +227,11 @@ describe('FrankaInterpreter', () => {
         program: { name: 'Test' },
         operations: [
           {
-            operation: 'if',
-            condition: false,
-            then: [{ operation: 'print', value: 'True branch' }],
-            else: [{ operation: 'print', value: 'False branch' }],
+            if: {
+              condition: false,
+              then: [{ print: 'True branch' }],
+              else: [{ print: 'False branch' }],
+            },
           },
         ],
       };
@@ -236,10 +246,11 @@ describe('FrankaInterpreter', () => {
         variables: { username: 'alice', expected: 'alice' },
         operations: [
           {
-            operation: 'if',
-            condition: { operation: 'equals', left: '$username', right: '$expected' },
-            then: [{ operation: 'print', value: 'Match' }],
-            else: [{ operation: 'print', value: 'No match' }],
+            if: {
+              condition: { equals: { left: '$username', right: '$expected' } },
+              then: [{ print: 'Match' }],
+              else: [{ print: 'No match' }],
+            },
           },
         ],
       };
@@ -279,7 +290,7 @@ describe('FrankaInterpreter', () => {
     it('should throw error for undefined variable', () => {
       const program = {
         program: { name: 'Test' },
-        operations: [{ operation: 'print', value: '$undefined' }],
+        operations: [{ print: '$undefined' }],
       };
 
       expect(() => interpreter.execute(program)).toThrow('Undefined variable: undefined');
@@ -288,7 +299,7 @@ describe('FrankaInterpreter', () => {
     it('should throw error for unknown operation', () => {
       const program = {
         program: { name: 'Test' },
-        operations: [{ operation: 'unknown_op', value: 'test' }],
+        operations: [{ unknown_op: 'test' }],
       };
 
       expect(() => interpreter.execute(program)).toThrow('Unknown operation: unknown_op');

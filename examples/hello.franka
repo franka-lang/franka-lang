@@ -6,5 +6,4 @@ program:
   description: "A simple greeting program"
 
 operations:
-  - operation: print
-    value: "Hello, Franka!"
+  - print: "Hello, Franka!"

@@ -11,37 +11,32 @@ variables:
 
 operations:
   # Check if username matches expected value
-  - operation: assign
-    variable: "is_match"
-    value:
-      operation: equals
-      left: "$username"
-      right: "$expected"
+  - assign:
+      variable: "is_match"
+      value:
+        equals:
+          left: "$username"
+          right: "$expected"
   
   # Conditional greeting based on match
-  - operation: if
-    condition: "$is_match"
-    then:
-      - operation: assign
-        variable: "greeting"
-        value:
-          operation: concat
-          values:
-            - "Welcome, "
-            - "$username"
-            - "!"
-      - operation: print
-        value: "$greeting"
-      
-      # Convert username to uppercase
-      - operation: assign
-        variable: "upper_username"
-        value:
-          operation: uppercase
-          value: "$username"
-      
-      - operation: print
-        value: "$upper_username"
-    else:
-      - operation: print
-        value: "Unknown user"
+  - if:
+      condition: "$is_match"
+      then:
+        - assign:
+            variable: "greeting"
+            value:
+              concat:
+                - "Welcome, "
+                - "$username"
+                - "!"
+        - print: "$greeting"
+        
+        # Convert username to uppercase
+        - assign:
+            variable: "upper_username"
+            value:
+              uppercase: "$username"
+        
+        - print: "$upper_username"
+      else:
+        - print: "Unknown user"

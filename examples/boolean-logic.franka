@@ -11,52 +11,44 @@ variables:
 
 operations:
   # Perform AND operation
-  - operation: assign
-    variable: "can_access"
-    value:
-      operation: and
-      values:
-        - "$is_valid"
-        - "$is_admin"
+  - assign:
+      variable: "can_access"
+      value:
+        and:
+          - "$is_valid"
+          - "$is_admin"
   
   # Conditional check
-  - operation: if
-    condition: "$can_access"
-    then:
-      - operation: print
-        value: "Access granted"
-    else:
-      - operation: print
-        value: "Access denied"
+  - if:
+      condition: "$can_access"
+      then:
+        - print: "Access granted"
+      else:
+        - print: "Access denied"
   
   # Perform OR operation
-  - operation: assign
-    variable: "can_view"
-    value:
-      operation: or
-      values:
-        - "$is_valid"
-        - "$is_admin"
+  - assign:
+      variable: "can_view"
+      value:
+        or:
+          - "$is_valid"
+          - "$is_admin"
   
   # Another conditional
-  - operation: if
-    condition: "$can_view"
-    then:
-      - operation: print
-        value: "You can view the content"
-    else:
-      - operation: print
-        value: "You cannot view the content"
+  - if:
+      condition: "$can_view"
+      then:
+        - print: "You can view the content"
+      else:
+        - print: "You cannot view the content"
   
   # NOT operation
-  - operation: assign
-    variable: "is_guest"
-    value:
-      operation: not
-      value: "$is_admin"
+  - assign:
+      variable: "is_guest"
+      value:
+        not: "$is_admin"
   
-  - operation: if
-    condition: "$is_guest"
-    then:
-      - operation: print
-        value: "Welcome, guest!"
+  - if:
+      condition: "$is_guest"
+      then:
+        - print: "Welcome, guest!"

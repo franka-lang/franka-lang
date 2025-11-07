@@ -11,38 +11,32 @@ variables:
 
 operations:
   # Concatenate strings to create a message
-  - operation: assign
-    variable: "message"
-    value:
-      operation: concat
-      values:
-        - "$greeting"
-        - ", "
-        - "$name"
-        - "!"
+  - assign:
+      variable: "message"
+      value:
+        concat:
+          - "$greeting"
+          - ", "
+          - "$name"
+          - "!"
   
   # Print the concatenated message
-  - operation: print
-    value: "$message"
+  - print: "$message"
   
   # Convert message to uppercase
-  - operation: assign
-    variable: "upper_message"
-    value:
-      operation: uppercase
-      value: "$message"
+  - assign:
+      variable: "upper_message"
+      value:
+        uppercase: "$message"
   
   # Print uppercase message
-  - operation: print
-    value: "$upper_message"
+  - print: "$upper_message"
   
   # Convert to lowercase
-  - operation: assign
-    variable: "lower_message"
-    value:
-      operation: lowercase
-      value: "$message"
+  - assign:
+      variable: "lower_message"
+      value:
+        lowercase: "$message"
   
   # Print lowercase message
-  - operation: print
-    value: "$lower_message"
+  - print: "$lower_message"

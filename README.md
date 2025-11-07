@@ -195,7 +195,7 @@ The Franka language specification is defined in `spec/language.yaml` and include
 
 ### Program Structure
 
-Franka programs are written in YAML format:
+Franka programs are written in YAML format with operation names as keys:
 
 ```yaml
 program:
@@ -207,35 +207,37 @@ variables:
   name: "World"
 
 operations:
-  - operation: concat
-    values:
-      - "$greeting"
-      - ", "
-      - "$name"
-      - "!"
-  - operation: print
-    value: "$message"
+  # Operations use the operation name as the key
+  - assign:
+      variable: "message"
+      value:
+        concat:
+          - "$greeting"
+          - ", "
+          - "$name"
+          - "!"
+  - print: "$message"
 ```
 
 ### Supported Operations
 
 #### String Operations
-- `concat`: Concatenate strings
-- `uppercase`: Convert string to uppercase
-- `lowercase`: Convert string to lowercase
-- `length`: Get string length
-- `substring`: Extract substring
+- `concat`: Concatenate strings (accepts array or named args)
+- `uppercase`: Convert string to uppercase (accepts value directly or as named arg)
+- `lowercase`: Convert string to lowercase (accepts value directly or as named arg)
+- `length`: Get string length (accepts value directly or as named arg)
+- `substring`: Extract substring (requires named args: value, start, end)
 
 #### Boolean Operations
-- `and`: Logical AND operation
-- `or`: Logical OR operation
-- `not`: Logical NOT operation
-- `equals`: Equality comparison
+- `and`: Logical AND operation (accepts array or named args)
+- `or`: Logical OR operation (accepts array or named args)
+- `not`: Logical NOT operation (accepts value directly or as named arg)
+- `equals`: Equality comparison (requires named args: left, right)
 
 #### Control Operations
-- `if`: Conditional execution with then/else branches
-- `print`: Print value to output
-- `assign`: Assign value to variable
+- `if`: Conditional execution with condition, then, and else branches
+- `print`: Print value to output (accepts value directly or as named arg)
+- `assign`: Assign value to variable (requires named args: variable, value)
 
 View the specification file directly or access it programmatically through the API.
 

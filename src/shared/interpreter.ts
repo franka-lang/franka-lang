@@ -13,8 +13,7 @@ export interface FrankaProgram {
 }
 
 export interface FrankaOperation {
-  operation: string;
-  [key: string]: any; // Dynamic operation parameters - acceptable for flexibility
+  [key: string]: any; // Operation name as key, parameters as value
 }
 
 export class FrankaInterpreter {
@@ -43,33 +42,37 @@ export class FrankaInterpreter {
   }
 
   private executeOperation(operation: FrankaOperation): any {
-    switch (operation.operation) {
+    // Get the operation name (first key in the object)
+    const operationName = Object.keys(operation)[0];
+    const operationArgs = operation[operationName];
+
+    switch (operationName) {
       case 'print':
-        return this.executePrint(operation);
+        return this.executePrint(operationArgs);
       case 'assign':
-        return this.executeAssign(operation);
+        return this.executeAssign(operationArgs);
       case 'concat':
-        return this.executeConcat(operation);
+        return this.executeConcat(operationArgs);
       case 'uppercase':
-        return this.executeUppercase(operation);
+        return this.executeUppercase(operationArgs);
       case 'lowercase':
-        return this.executeLowercase(operation);
+        return this.executeLowercase(operationArgs);
       case 'length':
-        return this.executeLength(operation);
+        return this.executeLength(operationArgs);
       case 'substring':
-        return this.executeSubstring(operation);
+        return this.executeSubstring(operationArgs);
       case 'and':
-        return this.executeAnd(operation);
+        return this.executeAnd(operationArgs);
       case 'or':
-        return this.executeOr(operation);
+        return this.executeOr(operationArgs);
       case 'not':
-        return this.executeNot(operation);
+        return this.executeNot(operationArgs);
       case 'equals':
-        return this.executeEquals(operation);
+        return this.executeEquals(operationArgs);
       case 'if':
-        return this.executeIf(operation);
+        return this.executeIf(operationArgs);
       default:
-        throw new Error(`Unknown operation: ${operation.operation}`);
+        throw new Error(`Unknown operation: ${operationName}`);
     }
   }
 
@@ -82,83 +85,111 @@ export class FrankaInterpreter {
       return this.variables[varName];
     }
 
-    if (typeof value === 'object' && value !== null && 'operation' in value) {
-      return this.executeOperation(value);
+    // Check if value is an operation (object with operation name as key)
+    if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+      const keys = Object.keys(value);
+      if (keys.length > 0) {
+        // This is likely an operation call
+        return this.executeOperation(value);
+      }
     }
 
     return value;
   }
 
-  private executePrint(operation: FrankaOperation): void {
-    const value = this.resolveValue(operation.value);
+  private executePrint(args: any): void {
+    // args can be a direct value or an object with named parameters
+    const value = typeof args === 'object' && args !== null && !Array.isArray(args) && 'value' in args
+      ? this.resolveValue(args.value)
+      : this.resolveValue(args);
     this.output.push(String(value));
   }
 
-  private executeAssign(operation: FrankaOperation): void {
-    const value = this.resolveValue(operation.value);
-    this.variables[operation.variable] = value;
+  private executeAssign(args: any): void {
+    // args should be an object with 'variable' and 'value' keys
+    const variable = args.variable;
+    const value = this.resolveValue(args.value);
+    this.variables[variable] = value;
   }
 
-  private executeConcat(operation: FrankaOperation): string {
-    const values = operation.values.map((v: any) => this.resolveValue(v));
-    return values.join('');
+  private executeConcat(args: any): string {
+    // args can be an array or an object with 'values' key
+    const values = Array.isArray(args) ? args : args.values;
+    return values.map((v: any) => this.resolveValue(v)).join('');
   }
 
-  private executeUppercase(operation: FrankaOperation): string {
-    const value = this.resolveValue(operation.value);
+  private executeUppercase(args: any): string {
+    // args can be a direct value or an object with 'value' key
+    const value = typeof args === 'object' && args !== null && !Array.isArray(args) && 'value' in args
+      ? this.resolveValue(args.value)
+      : this.resolveValue(args);
     return String(value).toUpperCase();
   }
 
-  private executeLowercase(operation: FrankaOperation): string {
-    const value = this.resolveValue(operation.value);
+  private executeLowercase(args: any): string {
+    // args can be a direct value or an object with 'value' key
+    const value = typeof args === 'object' && args !== null && !Array.isArray(args) && 'value' in args
+      ? this.resolveValue(args.value)
+      : this.resolveValue(args);
     return String(value).toLowerCase();
   }
 
-  private executeLength(operation: FrankaOperation): number {
-    const value = this.resolveValue(operation.value);
+  private executeLength(args: any): number {
+    // args can be a direct value or an object with 'value' key
+    const value = typeof args === 'object' && args !== null && !Array.isArray(args) && 'value' in args
+      ? this.resolveValue(args.value)
+      : this.resolveValue(args);
     return String(value).length;
   }
 
-  private executeSubstring(operation: FrankaOperation): string {
-    const value = this.resolveValue(operation.value);
-    const start = this.resolveValue(operation.start);
-    const end = operation.end !== undefined ? this.resolveValue(operation.end) : undefined;
+  private executeSubstring(args: any): string {
+    // args should be an object with 'value', 'start', and optionally 'end'
+    const value = this.resolveValue(args.value);
+    const start = this.resolveValue(args.start);
+    const end = args.end !== undefined ? this.resolveValue(args.end) : undefined;
     return String(value).substring(start, end);
   }
 
-  private executeAnd(operation: FrankaOperation): boolean {
-    const values = operation.values.map((v: any) => this.resolveValue(v));
-    return values.every((v: any) => Boolean(v));
+  private executeAnd(args: any): boolean {
+    // args can be an array or an object with 'values' key
+    const values = Array.isArray(args) ? args : args.values;
+    return values.map((v: any) => this.resolveValue(v)).every((v: any) => Boolean(v));
   }
 
-  private executeOr(operation: FrankaOperation): boolean {
-    const values = operation.values.map((v: any) => this.resolveValue(v));
-    return values.some((v: any) => Boolean(v));
+  private executeOr(args: any): boolean {
+    // args can be an array or an object with 'values' key
+    const values = Array.isArray(args) ? args : args.values;
+    return values.map((v: any) => this.resolveValue(v)).some((v: any) => Boolean(v));
   }
 
-  private executeNot(operation: FrankaOperation): boolean {
-    const value = this.resolveValue(operation.value);
+  private executeNot(args: any): boolean {
+    // args can be a direct value or an object with 'value' key
+    const value = typeof args === 'object' && args !== null && !Array.isArray(args) && 'value' in args
+      ? this.resolveValue(args.value)
+      : this.resolveValue(args);
     return !Boolean(value);
   }
 
-  private executeEquals(operation: FrankaOperation): boolean {
-    const left = this.resolveValue(operation.left);
-    const right = this.resolveValue(operation.right);
+  private executeEquals(args: any): boolean {
+    // args should be an object with 'left' and 'right' keys
+    const left = this.resolveValue(args.left);
+    const right = this.resolveValue(args.right);
     return left === right;
   }
 
-  private executeIf(operation: FrankaOperation): void {
-    const condition = this.resolveValue(operation.condition);
+  private executeIf(args: any): void {
+    // args should be an object with 'condition', 'then', and optionally 'else'
+    const condition = this.resolveValue(args.condition);
 
     if (Boolean(condition)) {
-      if (operation.then) {
-        for (const op of operation.then) {
+      if (args.then) {
+        for (const op of args.then) {
           this.executeOperation(op);
         }
       }
     } else {
-      if (operation.else) {
-        for (const op of operation.else) {
+      if (args.else) {
+        for (const op of args.else) {
           this.executeOperation(op);
         }
       }
