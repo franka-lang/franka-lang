@@ -1,0 +1,42 @@
+# String Operations Example
+# Demonstrates string manipulation operations
+
+program:
+  name: "String Operations"
+  description: "Demonstrate string concatenation and transformation"
+
+variables:
+  greeting: "Hello"
+  name: "World"
+
+operations:
+  # Concatenate strings to create a message
+  - assign:
+      variable: "message"
+      value:
+        concat:
+          - "$greeting"
+          - ", "
+          - "$name"
+          - "!"
+  
+  # Print the concatenated message
+  - print: "$message"
+  
+  # Convert message to uppercase
+  - assign:
+      variable: "upper_message"
+      value:
+        uppercase: "$message"
+  
+  # Print uppercase message
+  - print: "$upper_message"
+  
+  # Convert to lowercase
+  - assign:
+      variable: "lower_message"
+      value:
+        lowercase: "$message"
+  
+  # Print lowercase message
+  - print: "$lower_message"

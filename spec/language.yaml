@@ -7,6 +7,7 @@ metadata:
   version: "1.0.0"
   description: "The language of collaboration - A programming language designed for clear communication and collaboration"
   file_extension: ".franka"
+  syntax_format: "yaml"
   comment_style:
     single_line: "#"
     multi_line:
@@ -14,162 +15,198 @@ metadata:
       end: "###"
 
 syntax:
-  keywords:
-    - name: "let"
-      description: "Declares a variable binding"
-      category: "declaration"
-      example: "let x = 10"
-    
-    - name: "const"
-      description: "Declares a constant binding"
-      category: "declaration"
-      example: "const PI = 3.14159"
-    
-    - name: "fn"
-      description: "Declares a function"
-      category: "declaration"
-      example: "fn add(a, b) { return a + b }"
-    
-    - name: "return"
-      description: "Returns a value from a function"
-      category: "control_flow"
-      example: "return result"
-    
-    - name: "if"
-      description: "Conditional execution"
-      category: "control_flow"
-      example: "if condition { ... }"
-    
-    - name: "else"
-      description: "Alternative branch for conditionals"
-      category: "control_flow"
-      example: "if condition { ... } else { ... }"
-    
-    - name: "for"
-      description: "Loop construct"
-      category: "control_flow"
-      example: "for i in range(10) { ... }"
-    
-    - name: "while"
-      description: "While loop"
-      category: "control_flow"
-      example: "while condition { ... }"
-    
-    - name: "break"
-      description: "Exit from loop"
-      category: "control_flow"
-      example: "break"
-    
-    - name: "continue"
-      description: "Skip to next loop iteration"
-      category: "control_flow"
-      example: "continue"
-    
-    - name: "import"
-      description: "Import module or symbols"
-      category: "module"
-      example: "import math"
-    
-    - name: "export"
-      description: "Export symbols from module"
-      category: "module"
-      example: "export fn myFunction() { ... }"
+  description: "Franka programs are written in YAML format with structured operations"
+  
+  program_structure:
+    description: "A Franka program is a YAML document with operations"
+    root_keys:
+      - name: "program"
+        description: "Root key containing program metadata and operations"
+        required: true
+      - name: "variables"
+        description: "Variable declarations"
+        required: false
+      - name: "operations"
+        description: "List of operations to execute"
+        required: true
 
-  operators:
-    arithmetic:
-      - symbol: "+"
-        description: "Addition"
-        precedence: 4
-      - symbol: "-"
-        description: "Subtraction"
-        precedence: 4
-      - symbol: "*"
-        description: "Multiplication"
-        precedence: 5
-      - symbol: "/"
-        description: "Division"
-        precedence: 5
-      - symbol: "%"
-        description: "Modulo"
-        precedence: 5
+  operations:
+    string:
+      - name: "concat"
+        description: "Concatenate strings"
+        parameters:
+          - name: "values"
+            type: "list"
+            description: "List of string values or variable references to concatenate"
+        example: |
+          concat:
+            - "Hello, "
+            - "$name"
+      
+      - name: "length"
+        description: "Get string length"
+        parameters:
+          - name: "value"
+            type: "string"
+            description: "String value or variable reference"
+        example: |
+          length: "$text"
+      
+      - name: "substring"
+        description: "Extract substring"
+        parameters:
+          - name: "value"
+            type: "string"
+            description: "String value or variable reference"
+          - name: "start"
+            type: "number"
+            description: "Starting index"
+          - name: "end"
+            type: "number"
+            description: "Ending index (optional)"
+        example: |
+          substring:
+            value: "$text"
+            start: 0
+            end: 5
+      
+      - name: "uppercase"
+        description: "Convert string to uppercase"
+        parameters:
+          - name: "value"
+            type: "string"
+            description: "String value or variable reference"
+        example: |
+          uppercase: "$text"
+      
+      - name: "lowercase"
+        description: "Convert string to lowercase"
+        parameters:
+          - name: "value"
+            type: "string"
+            description: "String value or variable reference"
+        example: |
+          lowercase: "$text"
     
-    comparison:
-      - symbol: "=="
-        description: "Equality"
-        precedence: 3
-      - symbol: "!="
-        description: "Inequality"
-        precedence: 3
-      - symbol: "<"
-        description: "Less than"
-        precedence: 3
-      - symbol: ">"
-        description: "Greater than"
-        precedence: 3
-      - symbol: "<="
-        description: "Less than or equal"
-        precedence: 3
-      - symbol: ">="
-        description: "Greater than or equal"
-        precedence: 3
+    boolean:
+      - name: "and"
+        description: "Logical AND operation"
+        parameters:
+          - name: "values"
+            type: "list"
+            description: "List of boolean values or variable references"
+        example: |
+          and:
+            - true
+            - "$condition"
+      
+      - name: "or"
+        description: "Logical OR operation"
+        parameters:
+          - name: "values"
+            type: "list"
+            description: "List of boolean values or variable references"
+        example: |
+          or:
+            - false
+            - "$condition"
+      
+      - name: "not"
+        description: "Logical NOT operation"
+        parameters:
+          - name: "value"
+            type: "boolean"
+            description: "Boolean value or variable reference"
+        example: |
+          not: "$condition"
+      
+      - name: "equals"
+        description: "Equality comparison"
+        parameters:
+          - name: "left"
+            type: "any"
+            description: "Left operand"
+          - name: "right"
+            type: "any"
+            description: "Right operand"
+        example: |
+          equals:
+            left: "$value1"
+            right: "$value2"
     
-    logical:
-      - symbol: "&&"
-        description: "Logical AND"
-        precedence: 2
-      - symbol: "||"
-        description: "Logical OR"
-        precedence: 1
-      - symbol: "!"
-        description: "Logical NOT"
-        precedence: 6
+    control:
+      - name: "if"
+        description: "Conditional execution"
+        parameters:
+          - name: "condition"
+            type: "any"
+            description: "Condition to evaluate"
+          - name: "then"
+            type: "list"
+            description: "Operations to execute if condition is true"
+          - name: "else"
+            type: "list"
+            description: "Operations to execute if condition is false (optional)"
+        example: |
+          if:
+            condition:
+              equals:
+                left: "$name"
+                right: "Alice"
+            then:
+              - print: "Hello Alice!"
+            else:
+              - print: "Hello stranger!"
+      
+      - name: "print"
+        description: "Print value to output"
+        parameters:
+          - name: "value"
+            type: "any"
+            description: "Value to print"
+        example: |
+          print: "Hello, World!"
+      
+      - name: "assign"
+        description: "Assign value to variable"
+        parameters:
+          - name: "variable"
+            type: "string"
+            description: "Variable name"
+          - name: "value"
+            type: "any"
+            description: "Value to assign"
+        example: |
+          assign:
+            variable: "result"
+            value: "Success"
 
   data_types:
     primitives:
-      - name: "Number"
-        description: "Numeric values (integers and floats)"
-        examples: ["42", "3.14", "-10"]
-      
       - name: "String"
         description: "Text values"
-        examples: ["\"hello\"", "'world'"]
+        examples: ["\"hello\"", "\"world\"", "\"\""]
       
       - name: "Boolean"
         description: "True or false values"
         examples: ["true", "false"]
-      
-      - name: "Null"
-        description: "Absence of value"
-        examples: ["null"]
-    
-    composite:
-      - name: "Array"
-        description: "Ordered collection of values"
-        syntax: "[element1, element2, ...]"
-        examples: ["[1, 2, 3]", "[\"a\", \"b\", \"c\"]"]
-      
-      - name: "Object"
-        description: "Key-value collection"
-        syntax: "{ key1: value1, key2: value2, ... }"
-        examples: ["{ name: \"John\", age: 30 }"]
-      
-      - name: "Function"
-        description: "First-class function type"
-        syntax: "fn(params) { body }"
-        examples: ["fn add(a, b) { return a + b }"]
 
 semantics:
   scoping:
-    type: "lexical"
-    description: "Variables are scoped to the block in which they are declared"
+    type: "dynamic"
+    description: "Variables are scoped to the operations in which they are defined"
   
   type_system:
     paradigm: "dynamic"
-    description: "Runtime type checking with optional type hints"
+    description: "Runtime type checking with YAML structure validation"
   
   evaluation:
     strategy: "eager"
-    description: "Arguments are evaluated before function call"
+    description: "Operations are evaluated in sequence as defined"
+  
+  variables:
+    reference_syntax: "$variable_name"
+    description: "Variables are referenced using $ prefix"
 
 tooling:
   cli:
@@ -209,35 +246,95 @@ examples:
   - name: "Hello World"
     description: "Basic program that prints a greeting"
     code: |
-      # Hello World in Franka
-      const message = "Hello, Franka!"
-      print(message)
-  
-  - name: "Fibonacci"
-    description: "Calculate Fibonacci numbers"
-    code: |
-      fn fibonacci(n) {
-        if n <= 1 {
-          return n
-        }
-        return fibonacci(n - 1) + fibonacci(n - 2)
-      }
+      program:
+        name: "Hello World"
+        description: "A simple greeting program"
       
-      for i in range(10) {
-        print(fibonacci(i))
-      }
+      operations:
+        - print: "Hello, Franka!"
   
-  - name: "Data Processing"
-    description: "Working with arrays and objects"
+  - name: "String Operations"
+    description: "Demonstrate string manipulation"
     code: |
-      let users = [
-        { name: "Alice", age: 30 },
-        { name: "Bob", age: 25 },
-        { name: "Charlie", age: 35 }
-      ]
+      program:
+        name: "String Operations"
       
-      for user in users {
-        if user.age > 28 {
-          print(user.name + " is over 28")
-        }
-      }
+      variables:
+        greeting: "Hello"
+        name: "World"
+      
+      operations:
+        - assign:
+            variable: "message"
+            value:
+              concat:
+                - "$greeting"
+                - ", "
+                - "$name"
+                - "!"
+        
+        - print: "$message"
+        
+        - assign:
+            variable: "upper_message"
+            value:
+              uppercase: "$message"
+        
+        - print: "$upper_message"
+  
+  - name: "Boolean Logic"
+    description: "Demonstrate boolean operations"
+    code: |
+      program:
+        name: "Boolean Logic"
+      
+      variables:
+        is_valid: true
+        is_admin: false
+      
+      operations:
+        - assign:
+            variable: "can_access"
+            value:
+              and:
+                - "$is_valid"
+                - "$is_admin"
+        
+        - if:
+            condition: "$can_access"
+            then:
+              - print: "Access granted"
+            else:
+              - print: "Access denied"
+  
+  - name: "Conditional String Processing"
+    description: "Combine boolean and string operations"
+    code: |
+      program:
+        name: "Conditional String Processing"
+      
+      variables:
+        username: "alice"
+        expected: "alice"
+      
+      operations:
+        - assign:
+            variable: "is_match"
+            value:
+              equals:
+                left: "$username"
+                right: "$expected"
+        
+        - if:
+            condition: "$is_match"
+            then:
+              - assign:
+                  variable: "greeting"
+                  value:
+                    concat:
+                      - "Welcome, "
+                      - "$username"
+                      - "!"
+              - print: "$greeting"
+            else:
+              - print: "Unknown user"

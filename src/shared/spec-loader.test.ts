@@ -18,30 +18,64 @@ describe('spec-loader', () => {
       expect(spec.metadata.version).toBe('1.0.0');
       expect(spec.metadata.description).toContain('collaboration');
       expect(spec.metadata.file_extension).toBe('.franka');
+      expect(spec.metadata.syntax_format).toBe('yaml');
     });
 
-    it('should have keywords defined', () => {
+    it('should have operations defined', () => {
       const spec = loadLanguageSpec();
-      expect(spec.syntax.keywords).toBeInstanceOf(Array);
-      expect(spec.syntax.keywords.length).toBeGreaterThan(0);
-
-      const letKeyword = spec.syntax.keywords.find((k) => k.name === 'let');
-      expect(letKeyword).toBeDefined();
-      expect(letKeyword?.category).toBe('declaration');
+      expect(spec.syntax.operations.string).toBeInstanceOf(Array);
+      expect(spec.syntax.operations.boolean).toBeInstanceOf(Array);
+      expect(spec.syntax.operations.control).toBeInstanceOf(Array);
+      expect(spec.syntax.operations.string.length).toBeGreaterThan(0);
+      expect(spec.syntax.operations.boolean.length).toBeGreaterThan(0);
+      expect(spec.syntax.operations.control.length).toBeGreaterThan(0);
     });
 
-    it('should have operators defined', () => {
+    it('should have string operations defined', () => {
       const spec = loadLanguageSpec();
-      expect(spec.syntax.operators.arithmetic).toBeInstanceOf(Array);
-      expect(spec.syntax.operators.comparison).toBeInstanceOf(Array);
-      expect(spec.syntax.operators.logical).toBeInstanceOf(Array);
+      const concatOp = spec.syntax.operations.string.find((op) => op.name === 'concat');
+      expect(concatOp).toBeDefined();
+      expect(concatOp?.description).toContain('Concatenate');
+
+      const uppercaseOp = spec.syntax.operations.string.find((op) => op.name === 'uppercase');
+      expect(uppercaseOp).toBeDefined();
+    });
+
+    it('should have boolean operations defined', () => {
+      const spec = loadLanguageSpec();
+      const andOp = spec.syntax.operations.boolean.find((op) => op.name === 'and');
+      expect(andOp).toBeDefined();
+      expect(andOp?.description).toContain('AND');
+
+      const orOp = spec.syntax.operations.boolean.find((op) => op.name === 'or');
+      expect(orOp).toBeDefined();
+
+      const notOp = spec.syntax.operations.boolean.find((op) => op.name === 'not');
+      expect(notOp).toBeDefined();
+    });
+
+    it('should have control operations defined', () => {
+      const spec = loadLanguageSpec();
+      const ifOp = spec.syntax.operations.control.find((op) => op.name === 'if');
+      expect(ifOp).toBeDefined();
+
+      const printOp = spec.syntax.operations.control.find((op) => op.name === 'print');
+      expect(printOp).toBeDefined();
+
+      const assignOp = spec.syntax.operations.control.find((op) => op.name === 'assign');
+      expect(assignOp).toBeDefined();
     });
 
     it('should have data types defined', () => {
       const spec = loadLanguageSpec();
       expect(spec.syntax.data_types.primitives).toBeInstanceOf(Array);
-      expect(spec.syntax.data_types.composite).toBeInstanceOf(Array);
       expect(spec.syntax.data_types.primitives.length).toBeGreaterThan(0);
+
+      const stringType = spec.syntax.data_types.primitives.find((t) => t.name === 'String');
+      expect(stringType).toBeDefined();
+
+      const booleanType = spec.syntax.data_types.primitives.find((t) => t.name === 'Boolean');
+      expect(booleanType).toBeDefined();
     });
 
     it('should have examples defined', () => {
@@ -51,7 +85,25 @@ describe('spec-loader', () => {
 
       const helloWorld = spec.examples.find((ex) => ex.name === 'Hello World');
       expect(helloWorld).toBeDefined();
-      expect(helloWorld?.code).toContain('Hello');
+      expect(helloWorld?.code).toContain('program:');
+      expect(helloWorld?.code).toContain('operations:');
+    });
+
+    it('should have program structure defined', () => {
+      const spec = loadLanguageSpec();
+      expect(spec.syntax.program_structure).toBeDefined();
+      expect(spec.syntax.program_structure.root_keys).toBeInstanceOf(Array);
+      expect(spec.syntax.program_structure.root_keys.length).toBeGreaterThan(0);
+
+      const programKey = spec.syntax.program_structure.root_keys.find((k) => k.name === 'program');
+      expect(programKey).toBeDefined();
+      expect(programKey?.required).toBe(true);
+
+      const operationsKey = spec.syntax.program_structure.root_keys.find(
+        (k) => k.name === 'operations'
+      );
+      expect(operationsKey).toBeDefined();
+      expect(operationsKey?.required).toBe(true);
     });
   });
 
@@ -68,6 +120,7 @@ describe('spec-loader', () => {
       expect(metadata.name).toBe('Franka');
       expect(metadata.version).toBe('1.0.0');
       expect(metadata.file_extension).toBe('.franka');
+      expect(metadata.syntax_format).toBe('yaml');
     });
   });
 });

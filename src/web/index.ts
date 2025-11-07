@@ -28,11 +28,17 @@ app.get('/api/spec/examples', (_req: Request, res: Response) => {
 });
 
 app.get('/api/keywords', (_req: Request, res: Response) => {
-  res.json(spec.syntax.keywords);
+  // Return operations instead of keywords for YAML-based syntax
+  res.json({
+    string_operations: spec.syntax.operations.string,
+    boolean_operations: spec.syntax.operations.boolean,
+    control_operations: spec.syntax.operations.control,
+  });
 });
 
 app.get('/api/operators', (_req: Request, res: Response) => {
-  res.json(spec.syntax.operators);
+  // Return operations instead of operators for YAML-based syntax
+  res.json(spec.syntax.operations);
 });
 
 app.get('/api/version', (_req: Request, res: Response) => {
@@ -58,12 +64,13 @@ app.get('/', (_req: Request, res: Response) => {
       '/api/spec/metadata': 'Get language metadata',
       '/api/spec/syntax': 'Get syntax specification',
       '/api/spec/examples': 'Get code examples',
-      '/api/keywords': 'Get language keywords',
-      '/api/operators': 'Get operators',
+      '/api/keywords': 'Get language operations (string, boolean, control)',
+      '/api/operators': 'Get all operations',
       '/api/version': 'Get version information',
       '/health': 'Health check endpoint',
     },
     documentation: 'See spec/language.yaml for full specification',
+    syntax_format: 'Programs are written in YAML format',
   });
 });
 
