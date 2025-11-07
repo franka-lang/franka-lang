@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 
 import { loadLanguageSpec, getVersion } from '../shared/spec-loader';
+import { FrankaInterpreter } from '../shared/interpreter';
+import * as fs from 'fs';
 
 function showHelp() {
   const spec = loadLanguageSpec();
@@ -31,14 +33,53 @@ function showVersion() {
 
 function runFile(filePath: string) {
   console.log(`Running Franka program: ${filePath}`);
-  console.log('Note: Execution engine not yet implemented.');
-  console.log('This is a placeholder for future functionality.');
+
+  if (!fs.existsSync(filePath)) {
+    console.error(`Error: File not found: ${filePath}`);
+    process.exit(1);
+  }
+
+  try {
+    const interpreter = new FrankaInterpreter();
+    const output = interpreter.executeFile(filePath);
+
+    console.log('\nProgram output:');
+    console.log('---------------');
+    output.forEach((line) => console.log(line));
+    console.log('---------------');
+  } catch (error) {
+    console.error('Error executing program:');
+    console.error(error instanceof Error ? error.message : String(error));
+    process.exit(1);
+  }
 }
 
 function checkFile(filePath: string) {
   console.log(`Checking Franka program: ${filePath}`);
-  console.log('Note: Syntax checker not yet implemented.');
-  console.log('This is a placeholder for future functionality.');
+
+  if (!fs.existsSync(filePath)) {
+    console.error(`Error: File not found: ${filePath}`);
+    process.exit(1);
+  }
+
+  try {
+    const interpreter = new FrankaInterpreter();
+    const program = interpreter.loadProgram(filePath);
+
+    console.log('✓ Syntax is valid');
+    console.log(`✓ Program name: ${program.program.name}`);
+    if (program.program.description) {
+      console.log(`✓ Description: ${program.program.description}`);
+    }
+    console.log(`✓ Operations: ${program.operations.length}`);
+    if (program.variables) {
+      console.log(`✓ Variables: ${Object.keys(program.variables).length}`);
+    }
+  } catch (error) {
+    console.error('✗ Syntax error:');
+    console.error(error instanceof Error ? error.message : String(error));
+    process.exit(1);
+  }
 }
 
 function startRepl() {
