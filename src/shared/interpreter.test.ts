@@ -22,10 +22,7 @@ describe('FrankaInterpreter', () => {
     it('should execute assign and print operations', () => {
       const program = {
         program: { name: 'Test' },
-        operations: [
-          { assign: { variable: 'message', value: 'Hello' } },
-          { print: '$message' },
-        ],
+        operations: [{ assign: { variable: 'message', value: 'Hello' } }, { print: '$message' }],
       };
 
       const output = interpreter.execute(program);

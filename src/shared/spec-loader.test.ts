@@ -100,7 +100,7 @@ describe('spec-loader', () => {
       expect(programKey?.required).toBe(true);
 
       const operationsKey = spec.syntax.program_structure.root_keys.find(
-        (k) => k.name === 'operations',
+        (k) => k.name === 'operations'
       );
       expect(operationsKey).toBeDefined();
       expect(operationsKey?.required).toBe(true);
