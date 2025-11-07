@@ -97,16 +97,22 @@ export class FrankaInterpreter {
     return value;
   }
 
-  private executePrint(args: any): void {
-    // args can be a direct value or an object with named parameters
-    const value = typeof args === 'object' && args !== null && !Array.isArray(args) && 'value' in args
+  private extractValue(args: any): any {
+    // Helper method to extract value from args (can be direct or in a 'value' property)
+    return typeof args === 'object' && args !== null && !Array.isArray(args) && 'value' in args
       ? this.resolveValue(args.value)
       : this.resolveValue(args);
+  }
+
+  private executePrint(args: any): void {
+    const value = this.extractValue(args);
     this.output.push(String(value));
   }
 
   private executeAssign(args: any): void {
-    // args should be an object with 'variable' and 'value' keys
+    if (!args || typeof args !== 'object' || !('variable' in args) || !('value' in args)) {
+      throw new Error('assign operation requires "variable" and "value" properties');
+    }
     const variable = args.variable;
     const value = this.resolveValue(args.value);
     this.variables[variable] = value;
@@ -114,36 +120,36 @@ export class FrankaInterpreter {
 
   private executeConcat(args: any): string {
     // args can be an array or an object with 'values' key
-    const values = Array.isArray(args) ? args : args.values;
+    let values: any[];
+    if (Array.isArray(args)) {
+      values = args;
+    } else if (args && typeof args === 'object' && 'values' in args) {
+      values = args.values;
+    } else {
+      throw new Error('concat operation requires an array or an object with "values" property');
+    }
     return values.map((v: any) => this.resolveValue(v)).join('');
   }
 
   private executeUppercase(args: any): string {
-    // args can be a direct value or an object with 'value' key
-    const value = typeof args === 'object' && args !== null && !Array.isArray(args) && 'value' in args
-      ? this.resolveValue(args.value)
-      : this.resolveValue(args);
+    const value = this.extractValue(args);
     return String(value).toUpperCase();
   }
 
   private executeLowercase(args: any): string {
-    // args can be a direct value or an object with 'value' key
-    const value = typeof args === 'object' && args !== null && !Array.isArray(args) && 'value' in args
-      ? this.resolveValue(args.value)
-      : this.resolveValue(args);
+    const value = this.extractValue(args);
     return String(value).toLowerCase();
   }
 
   private executeLength(args: any): number {
-    // args can be a direct value or an object with 'value' key
-    const value = typeof args === 'object' && args !== null && !Array.isArray(args) && 'value' in args
-      ? this.resolveValue(args.value)
-      : this.resolveValue(args);
+    const value = this.extractValue(args);
     return String(value).length;
   }
 
   private executeSubstring(args: any): string {
-    // args should be an object with 'value', 'start', and optionally 'end'
+    if (!args || typeof args !== 'object' || !('value' in args) || !('start' in args)) {
+      throw new Error('substring operation requires "value" and "start" properties');
+    }
     const value = this.resolveValue(args.value);
     const start = this.resolveValue(args.start);
     const end = args.end !== undefined ? this.resolveValue(args.end) : undefined;
@@ -152,33 +158,48 @@ export class FrankaInterpreter {
 
   private executeAnd(args: any): boolean {
     // args can be an array or an object with 'values' key
-    const values = Array.isArray(args) ? args : args.values;
+    let values: any[];
+    if (Array.isArray(args)) {
+      values = args;
+    } else if (args && typeof args === 'object' && 'values' in args) {
+      values = args.values;
+    } else {
+      throw new Error('and operation requires an array or an object with "values" property');
+    }
     return values.map((v: any) => this.resolveValue(v)).every((v: any) => Boolean(v));
   }
 
   private executeOr(args: any): boolean {
     // args can be an array or an object with 'values' key
-    const values = Array.isArray(args) ? args : args.values;
+    let values: any[];
+    if (Array.isArray(args)) {
+      values = args;
+    } else if (args && typeof args === 'object' && 'values' in args) {
+      values = args.values;
+    } else {
+      throw new Error('or operation requires an array or an object with "values" property');
+    }
     return values.map((v: any) => this.resolveValue(v)).some((v: any) => Boolean(v));
   }
 
   private executeNot(args: any): boolean {
-    // args can be a direct value or an object with 'value' key
-    const value = typeof args === 'object' && args !== null && !Array.isArray(args) && 'value' in args
-      ? this.resolveValue(args.value)
-      : this.resolveValue(args);
+    const value = this.extractValue(args);
     return !Boolean(value);
   }
 
   private executeEquals(args: any): boolean {
-    // args should be an object with 'left' and 'right' keys
+    if (!args || typeof args !== 'object' || !('left' in args) || !('right' in args)) {
+      throw new Error('equals operation requires "left" and "right" properties');
+    }
     const left = this.resolveValue(args.left);
     const right = this.resolveValue(args.right);
     return left === right;
   }
 
   private executeIf(args: any): void {
-    // args should be an object with 'condition', 'then', and optionally 'else'
+    if (!args || typeof args !== 'object' || !('condition' in args)) {
+      throw new Error('if operation requires "condition" property');
+    }
     const condition = this.resolveValue(args.condition);
 
     if (Boolean(condition)) {
