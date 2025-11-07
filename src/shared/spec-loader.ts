@@ -2,12 +2,26 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as yaml from 'js-yaml';
 
+export interface OperationParameter {
+  name: string;
+  type: string;
+  description: string;
+}
+
+export interface Operation {
+  name: string;
+  description: string;
+  parameters: OperationParameter[];
+  example: string;
+}
+
 export interface LanguageSpec {
   metadata: {
     name: string;
     version: string;
     description: string;
     file_extension: string;
+    syntax_format: string;
     comment_style: {
       single_line: string;
       multi_line: {
@@ -17,26 +31,29 @@ export interface LanguageSpec {
     };
   };
   syntax: {
-    keywords: Array<{
-      name: string;
+    description: string;
+    program_structure: {
       description: string;
-      category: string;
-      example: string;
-    }>;
-    operators: {
-      arithmetic: Array<{ symbol: string; description: string; precedence: number }>;
-      comparison: Array<{ symbol: string; description: string; precedence: number }>;
-      logical: Array<{ symbol: string; description: string; precedence: number }>;
+      root_keys: Array<{
+        name: string;
+        description: string;
+        required: boolean;
+      }>;
+    };
+    operations: {
+      string: Operation[];
+      boolean: Operation[];
+      control: Operation[];
     };
     data_types: {
       primitives: Array<{ name: string; description: string; examples: string[] }>;
-      composite: Array<{ name: string; description: string; syntax: string; examples: string[] }>;
     };
   };
   semantics: {
     scoping: { type: string; description: string };
     type_system: { paradigm: string; description: string };
     evaluation: { strategy: string; description: string };
+    variables: { reference_syntax: string; description: string };
   };
   tooling: {
     cli: {

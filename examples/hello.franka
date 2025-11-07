@@ -1,0 +1,10 @@
+# Hello World Example
+# A simple Franka program that prints a greeting
+
+program:
+  name: "Hello World"
+  description: "A simple greeting program"
+
+operations:
+  - operation: print
+    value: "Hello, Franka!"

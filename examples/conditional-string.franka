@@ -1,0 +1,47 @@
+# Conditional String Processing Example
+# Combines boolean and string operations
+
+program:
+  name: "Conditional String Processing"
+  description: "Demonstrate combining boolean and string operations"
+
+variables:
+  username: "alice"
+  expected: "alice"
+
+operations:
+  # Check if username matches expected value
+  - operation: assign
+    variable: "is_match"
+    value:
+      operation: equals
+      left: "$username"
+      right: "$expected"
+  
+  # Conditional greeting based on match
+  - operation: if
+    condition: "$is_match"
+    then:
+      - operation: assign
+        variable: "greeting"
+        value:
+          operation: concat
+          values:
+            - "Welcome, "
+            - "$username"
+            - "!"
+      - operation: print
+        value: "$greeting"
+      
+      # Convert username to uppercase
+      - operation: assign
+        variable: "upper_username"
+        value:
+          operation: uppercase
+          value: "$username"
+      
+      - operation: print
+        value: "$upper_username"
+    else:
+      - operation: print
+        value: "Unknown user"

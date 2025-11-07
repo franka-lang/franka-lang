@@ -85,7 +85,10 @@ class FrankaMcpServer {
 
   private handleGetKeywords() {
     return {
-      keywords: this.spec.syntax.keywords,
+      operations: this.spec.syntax.operations,
+      string_operations: this.spec.syntax.operations.string,
+      boolean_operations: this.spec.syntax.operations.boolean,
+      control_operations: this.spec.syntax.operations.control,
     };
   }
 
@@ -119,11 +122,12 @@ class FrankaMcpServer {
     console.log('Supported methods:');
     console.log('  - initialize: Get server information');
     console.log('  - getCapabilities: Get server capabilities');
-    console.log('  - getKeywords: Get language keywords');
+    console.log('  - getKeywords: Get language operations');
     console.log('  - getSyntax: Get complete syntax specification');
     console.log('  - getExamples: Get code examples');
-    console.log('  - checkSyntax: Validate Franka code');
+    console.log('  - checkSyntax: Validate Franka code (YAML format)');
     console.log('');
+    console.log('Note: Franka programs use YAML-based syntax.');
     console.log('Note: Full MCP protocol implementation is a placeholder.');
     console.log('This provides the basic structure for future implementation.');
 

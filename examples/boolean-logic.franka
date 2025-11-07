@@ -1,0 +1,62 @@
+# Boolean Logic Example
+# Demonstrates boolean operations and conditional logic
+
+program:
+  name: "Boolean Logic"
+  description: "Demonstrate boolean operations"
+
+variables:
+  is_valid: true
+  is_admin: false
+
+operations:
+  # Perform AND operation
+  - operation: assign
+    variable: "can_access"
+    value:
+      operation: and
+      values:
+        - "$is_valid"
+        - "$is_admin"
+  
+  # Conditional check
+  - operation: if
+    condition: "$can_access"
+    then:
+      - operation: print
+        value: "Access granted"
+    else:
+      - operation: print
+        value: "Access denied"
+  
+  # Perform OR operation
+  - operation: assign
+    variable: "can_view"
+    value:
+      operation: or
+      values:
+        - "$is_valid"
+        - "$is_admin"
+  
+  # Another conditional
+  - operation: if
+    condition: "$can_view"
+    then:
+      - operation: print
+        value: "You can view the content"
+    else:
+      - operation: print
+        value: "You cannot view the content"
+  
+  # NOT operation
+  - operation: assign
+    variable: "is_guest"
+    value:
+      operation: not
+      value: "$is_admin"
+  
+  - operation: if
+    condition: "$is_guest"
+    then:
+      - operation: print
+        value: "Welcome, guest!"
