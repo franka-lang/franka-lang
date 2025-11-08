@@ -5,8 +5,8 @@
 metadata:
   name: Franka
   version: "1.0.0"
-  description: "The language of collaboration - A programming language designed for clear communication and collaboration"
-  file_extension: ".franka"
+  description: "The language of collaboration - A pure functional programming language designed for clear communication and collaboration"
+  file_extension: ".yaml"
   syntax_format: "yaml"
   comment_style:
     single_line: "#"
@@ -15,22 +15,43 @@ metadata:
       end: "###"
 
 syntax:
-  description: "Franka programs are written in YAML format with structured operations"
+  description: "Franka is a pure functional language. Programs are written in YAML format and evaluate to a single value."
   
   program_structure:
-    description: "A Franka program is a YAML document with operations"
+    description: "A Franka program is a YAML document with an expression that evaluates to a value"
     root_keys:
       - name: "program"
-        description: "Root key containing program metadata and operations"
+        description: "Root key containing program metadata"
         required: true
       - name: "variables"
-        description: "Variable declarations"
+        description: "Initial variable declarations (optional)"
         required: false
-      - name: "operations"
-        description: "List of operations to execute"
+      - name: "expression"
+        description: "Expression to evaluate - can be a value, operation, or let binding"
         required: true
 
   operations:
+    let:
+      - name: "let"
+        description: "Define local variable bindings with lexical scoping"
+        parameters:
+          - name: "bindings"
+            type: "mapping"
+            description: "Variable names as keys, values as expressions. Each binding can reference earlier bindings."
+          - name: "in"
+            type: "expression"
+            description: "Expression to evaluate with the bindings in scope"
+        example: |
+          let:
+            x: 5
+            y: 10
+            sum:
+              concat:
+                - "$x"
+                - " + "
+                - "$y"
+            in: "$sum"
+    
     string:
       - name: "concat"
         description: "Concatenate strings"
@@ -136,50 +157,25 @@ syntax:
     
     control:
       - name: "if"
-        description: "Conditional execution"
+        description: "Conditional expression that returns a value"
         parameters:
           - name: "condition"
             type: "any"
             description: "Condition to evaluate"
           - name: "then"
-            type: "list"
-            description: "Operations to execute if condition is true"
+            type: "expression"
+            description: "Expression to evaluate if condition is true"
           - name: "else"
-            type: "list"
-            description: "Operations to execute if condition is false (optional)"
+            type: "expression"
+            description: "Expression to evaluate if condition is false (optional)"
         example: |
           if:
             condition:
               equals:
                 left: "$name"
                 right: "Alice"
-            then:
-              - print: "Hello Alice!"
-            else:
-              - print: "Hello stranger!"
-      
-      - name: "print"
-        description: "Print value to output"
-        parameters:
-          - name: "value"
-            type: "any"
-            description: "Value to print"
-        example: |
-          print: "Hello, World!"
-      
-      - name: "assign"
-        description: "Assign value to variable"
-        parameters:
-          - name: "variable"
-            type: "string"
-            description: "Variable name"
-          - name: "value"
-            type: "any"
-            description: "Value to assign"
-        example: |
-          assign:
-            variable: "result"
-            value: "Success"
+            then: "Hello Alice!"
+            else: "Hello stranger!"
 
   data_types:
     primitives:
@@ -193,8 +189,12 @@ syntax:
 
 semantics:
   scoping:
-    type: "dynamic"
-    description: "Variables are scoped to the operations in which they are defined"
+    type: "lexical"
+    description: "Let bindings create lexical scopes. Variables are scoped to the 'in' expression of their let block."
+  
+  purity:
+    paradigm: "pure functional"
+    description: "No side effects. Programs evaluate to values rather than producing output."
   
   type_system:
     paradigm: "dynamic"
@@ -202,7 +202,7 @@ semantics:
   
   evaluation:
     strategy: "eager"
-    description: "Operations are evaluated in sequence as defined"
+    description: "Expressions are evaluated eagerly. Let bindings are evaluated sequentially, allowing later bindings to reference earlier ones."
   
   variables:
     reference_syntax: "$variable_name"
@@ -244,17 +244,16 @@ tooling:
 
 examples:
   - name: "Hello World"
-    description: "Basic program that prints a greeting"
+    description: "Basic program that returns a greeting"
     code: |
       program:
         name: "Hello World"
         description: "A simple greeting program"
       
-      operations:
-        - print: "Hello, Franka!"
+      expression: "Hello, Franka!"
   
   - name: "String Operations"
-    description: "Demonstrate string manipulation"
+    description: "Demonstrate string manipulation with let bindings"
     code: |
       program:
         name: "String Operations"
@@ -263,24 +262,17 @@ examples:
         greeting: "Hello"
         name: "World"
       
-      operations:
-        - assign:
-            variable: "message"
-            value:
-              concat:
-                - "$greeting"
-                - ", "
-                - "$name"
-                - "!"
-        
-        - print: "$message"
-        
-        - assign:
-            variable: "upper_message"
-            value:
-              uppercase: "$message"
-        
-        - print: "$upper_message"
+      expression:
+        let:
+          message:
+            concat:
+              - "$greeting"
+              - ", "
+              - "$name"
+              - "!"
+          upper_message:
+            uppercase: "$message"
+          in: "$upper_message"
   
   - name: "Boolean Logic"
     description: "Demonstrate boolean operations"
@@ -292,20 +284,18 @@ examples:
         is_valid: true
         is_admin: false
       
-      operations:
-        - assign:
-            variable: "can_access"
-            value:
-              and:
-                - "$is_valid"
-                - "$is_admin"
-        
-        - if:
-            condition: "$can_access"
-            then:
-              - print: "Access granted"
-            else:
-              - print: "Access denied"
+      expression:
+        let:
+          can_access:
+            and:
+              - "$is_valid"
+              - "$is_admin"
+          result:
+            if:
+              condition: "$can_access"
+              then: "Access granted"
+              else: "Access denied"
+          in: "$result"
   
   - name: "Conditional String Processing"
     description: "Combine boolean and string operations"
@@ -317,24 +307,19 @@ examples:
         username: "alice"
         expected: "alice"
       
-      operations:
-        - assign:
-            variable: "is_match"
-            value:
-              equals:
-                left: "$username"
-                right: "$expected"
-        
-        - if:
-            condition: "$is_match"
-            then:
-              - assign:
-                  variable: "greeting"
-                  value:
-                    concat:
-                      - "Welcome, "
-                      - "$username"
-                      - "!"
-              - print: "$greeting"
-            else:
-              - print: "Unknown user"
+      expression:
+        let:
+          is_match:
+            equals:
+              left: "$username"
+              right: "$expected"
+          greeting:
+            if:
+              condition: "$is_match"
+              then:
+                concat:
+                  - "Welcome, "
+                  - "$username"
+                  - "!"
+              else: "Unknown user"
+          in: "$greeting"

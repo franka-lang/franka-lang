@@ -8,25 +8,80 @@ describe('FrankaInterpreter', () => {
     interpreter = new FrankaInterpreter();
   });
 
-  describe('basic operations', () => {
-    it('should execute print operation', () => {
+  describe('basic expressions', () => {
+    it('should evaluate a simple string value', () => {
       const program = {
         program: { name: 'Test' },
-        operations: [{ print: 'Hello, World!' }],
+        expression: 'Hello, World!',
       };
 
-      const output = interpreter.execute(program);
-      expect(output).toEqual(['Hello, World!']);
+      const result = interpreter.execute(program);
+      expect(result).toBe('Hello, World!');
     });
 
-    it('should execute assign and print operations', () => {
+    it('should evaluate a variable reference', () => {
       const program = {
         program: { name: 'Test' },
-        operations: [{ assign: { variable: 'message', value: 'Hello' } }, { print: '$message' }],
+        variables: { message: 'Hello' },
+        expression: '$message',
       };
 
-      const output = interpreter.execute(program);
-      expect(output).toEqual(['Hello']);
+      const result = interpreter.execute(program);
+      expect(result).toBe('Hello');
+    });
+  });
+
+  describe('let bindings', () => {
+    it('should create a simple let binding', () => {
+      const program = {
+        program: { name: 'Test' },
+        expression: {
+          let: {
+            x: 5,
+            in: '$x',
+          },
+        },
+      };
+
+      const result = interpreter.execute(program);
+      expect(result).toBe(5);
+    });
+
+    it('should allow later bindings to reference earlier ones', () => {
+      const program = {
+        program: { name: 'Test' },
+        expression: {
+          let: {
+            x: 5,
+            y: { concat: ['Value is ', '$x'] },
+            in: '$y',
+          },
+        },
+      };
+
+      const result = interpreter.execute(program);
+      expect(result).toBe('Value is 5');
+    });
+
+    it('should support nested let bindings', () => {
+      const program = {
+        program: { name: 'Test' },
+        expression: {
+          let: {
+            x: 5,
+            result: {
+              let: {
+                y: 10,
+                in: '$y',
+              },
+            },
+            in: '$result',
+          },
+        },
+      };
+
+      const result = interpreter.execute(program);
+      expect(result).toBe(10);
     });
   });
 
@@ -35,93 +90,61 @@ describe('FrankaInterpreter', () => {
       const program = {
         program: { name: 'Test' },
         variables: { greeting: 'Hello', name: 'World' },
-        operations: [
-          {
-            assign: {
-              variable: 'message',
-              value: {
-                concat: ['$greeting', ', ', '$name', '!'],
-              },
-            },
-          },
-          { print: '$message' },
-        ],
+        expression: {
+          concat: ['$greeting', ', ', '$name', '!'],
+        },
       };
 
-      const output = interpreter.execute(program);
-      expect(output).toEqual(['Hello, World!']);
+      const result = interpreter.execute(program);
+      expect(result).toBe('Hello, World!');
     });
 
     it('should convert string to uppercase', () => {
       const program = {
         program: { name: 'Test' },
-        operations: [
-          {
-            assign: {
-              variable: 'upper',
-              value: { uppercase: 'hello' },
-            },
-          },
-          { print: '$upper' },
-        ],
+        expression: {
+          uppercase: 'hello',
+        },
       };
 
-      const output = interpreter.execute(program);
-      expect(output).toEqual(['HELLO']);
+      const result = interpreter.execute(program);
+      expect(result).toBe('HELLO');
     });
 
     it('should convert string to lowercase', () => {
       const program = {
         program: { name: 'Test' },
-        operations: [
-          {
-            assign: {
-              variable: 'lower',
-              value: { lowercase: 'HELLO' },
-            },
-          },
-          { print: '$lower' },
-        ],
+        expression: {
+          lowercase: 'HELLO',
+        },
       };
 
-      const output = interpreter.execute(program);
-      expect(output).toEqual(['hello']);
+      const result = interpreter.execute(program);
+      expect(result).toBe('hello');
     });
 
     it('should get string length', () => {
       const program = {
         program: { name: 'Test' },
-        operations: [
-          {
-            assign: {
-              variable: 'len',
-              value: { length: 'Hello' },
-            },
-          },
-          { print: '$len' },
-        ],
+        expression: {
+          length: 'Hello',
+        },
       };
 
-      const output = interpreter.execute(program);
-      expect(output).toEqual(['5']);
+      const result = interpreter.execute(program);
+      expect(result).toBe(5);
     });
 
     it('should extract substring', () => {
       const program = {
         program: { name: 'Test' },
-        operations: [
-          {
-            assign: {
-              variable: 'sub',
-              value: { substring: { value: 'Hello World', start: 0, end: 5 } },
-            },
-          },
-          { print: '$sub' },
-        ],
+        expression: {
+          substring: { value: 'Hello World', start: 0, end: 5 },
+        },
       };
 
-      const output = interpreter.execute(program);
-      expect(output).toEqual(['Hello']);
+      const result = interpreter.execute(program);
+      expect(result).toBe('Hello');
     });
   });
 
@@ -129,74 +152,50 @@ describe('FrankaInterpreter', () => {
     it('should perform AND operation', () => {
       const program = {
         program: { name: 'Test' },
-        operations: [
-          {
-            assign: {
-              variable: 'result',
-              value: { and: [true, true] },
-            },
-          },
-          { print: '$result' },
-        ],
+        expression: {
+          and: [true, true],
+        },
       };
 
-      const output = interpreter.execute(program);
-      expect(output).toEqual(['true']);
+      const result = interpreter.execute(program);
+      expect(result).toBe(true);
     });
 
     it('should perform OR operation', () => {
       const program = {
         program: { name: 'Test' },
-        operations: [
-          {
-            assign: {
-              variable: 'result',
-              value: { or: [false, true] },
-            },
-          },
-          { print: '$result' },
-        ],
+        expression: {
+          or: [false, true],
+        },
       };
 
-      const output = interpreter.execute(program);
-      expect(output).toEqual(['true']);
+      const result = interpreter.execute(program);
+      expect(result).toBe(true);
     });
 
     it('should perform NOT operation', () => {
       const program = {
         program: { name: 'Test' },
-        operations: [
-          {
-            assign: {
-              variable: 'result',
-              value: { not: false },
-            },
-          },
-          { print: '$result' },
-        ],
+        expression: {
+          not: false,
+        },
       };
 
-      const output = interpreter.execute(program);
-      expect(output).toEqual(['true']);
+      const result = interpreter.execute(program);
+      expect(result).toBe(true);
     });
 
     it('should perform equals operation', () => {
       const program = {
         program: { name: 'Test' },
         variables: { name: 'alice' },
-        operations: [
-          {
-            assign: {
-              variable: 'result',
-              value: { equals: { left: '$name', right: 'alice' } },
-            },
-          },
-          { print: '$result' },
-        ],
+        expression: {
+          equals: { left: '$name', right: 'alice' },
+        },
       };
 
-      const output = interpreter.execute(program);
-      expect(output).toEqual(['true']);
+      const result = interpreter.execute(program);
+      expect(result).toBe(true);
     });
   });
 
@@ -204,82 +203,76 @@ describe('FrankaInterpreter', () => {
     it('should execute if-then branch', () => {
       const program = {
         program: { name: 'Test' },
-        operations: [
-          {
-            if: {
-              condition: true,
-              then: [{ print: 'True branch' }],
-              else: [{ print: 'False branch' }],
-            },
+        expression: {
+          if: {
+            condition: true,
+            then: 'True branch',
+            else: 'False branch',
           },
-        ],
+        },
       };
 
-      const output = interpreter.execute(program);
-      expect(output).toEqual(['True branch']);
+      const result = interpreter.execute(program);
+      expect(result).toBe('True branch');
     });
 
     it('should execute if-else branch', () => {
       const program = {
         program: { name: 'Test' },
-        operations: [
-          {
-            if: {
-              condition: false,
-              then: [{ print: 'True branch' }],
-              else: [{ print: 'False branch' }],
-            },
+        expression: {
+          if: {
+            condition: false,
+            then: 'True branch',
+            else: 'False branch',
           },
-        ],
+        },
       };
 
-      const output = interpreter.execute(program);
-      expect(output).toEqual(['False branch']);
+      const result = interpreter.execute(program);
+      expect(result).toBe('False branch');
     });
 
     it('should execute if with complex condition', () => {
       const program = {
         program: { name: 'Test' },
         variables: { username: 'alice', expected: 'alice' },
-        operations: [
-          {
-            if: {
-              condition: { equals: { left: '$username', right: '$expected' } },
-              then: [{ print: 'Match' }],
-              else: [{ print: 'No match' }],
-            },
+        expression: {
+          if: {
+            condition: { equals: { left: '$username', right: '$expected' } },
+            then: 'Match',
+            else: 'No match',
           },
-        ],
+        },
       };
 
-      const output = interpreter.execute(program);
-      expect(output).toEqual(['Match']);
+      const result = interpreter.execute(program);
+      expect(result).toBe('Match');
     });
   });
 
   describe('example files', () => {
-    it('should execute hello.franka', () => {
-      const filePath = path.join(__dirname, '../../examples/hello.franka');
-      const output = interpreter.executeFile(filePath);
-      expect(output).toEqual(['Hello, Franka!']);
+    it('should execute hello.yaml', () => {
+      const filePath = path.join(__dirname, '../../examples/hello.yaml');
+      const result = interpreter.executeFile(filePath);
+      expect(result).toBe('Hello, Franka!');
     });
 
-    it('should execute string-operations.franka', () => {
-      const filePath = path.join(__dirname, '../../examples/string-operations.franka');
-      const output = interpreter.executeFile(filePath);
-      expect(output).toEqual(['Hello, World!', 'HELLO, WORLD!', 'hello, world!']);
+    it('should execute string-operations.yaml', () => {
+      const filePath = path.join(__dirname, '../../examples/string-operations.yaml');
+      const result = interpreter.executeFile(filePath);
+      expect(result).toBe('Hello, World!\nHELLO, WORLD!\nhello, world!');
     });
 
-    it('should execute boolean-logic.franka', () => {
-      const filePath = path.join(__dirname, '../../examples/boolean-logic.franka');
-      const output = interpreter.executeFile(filePath);
-      expect(output).toEqual(['Access denied', 'You can view the content', 'Welcome, guest!']);
+    it('should execute boolean-logic.yaml', () => {
+      const filePath = path.join(__dirname, '../../examples/boolean-logic.yaml');
+      const result = interpreter.executeFile(filePath);
+      expect(result).toBe('Access denied\nYou can view the content\nWelcome, guest!');
     });
 
-    it('should execute conditional-string.franka', () => {
-      const filePath = path.join(__dirname, '../../examples/conditional-string.franka');
-      const output = interpreter.executeFile(filePath);
-      expect(output).toEqual(['Welcome, alice!', 'ALICE']);
+    it('should execute conditional-string.yaml', () => {
+      const filePath = path.join(__dirname, '../../examples/conditional-string.yaml');
+      const result = interpreter.executeFile(filePath);
+      expect(result).toBe('Welcome, alice!\nALICE');
     });
   });
 
@@ -287,7 +280,7 @@ describe('FrankaInterpreter', () => {
     it('should throw error for undefined variable', () => {
       const program = {
         program: { name: 'Test' },
-        operations: [{ print: '$undefined' }],
+        expression: '$undefined',
       };
 
       expect(() => interpreter.execute(program)).toThrow('Undefined variable: undefined');
@@ -296,10 +289,23 @@ describe('FrankaInterpreter', () => {
     it('should throw error for unknown operation', () => {
       const program = {
         program: { name: 'Test' },
-        operations: [{ unknown_op: 'test' }],
+        expression: { unknown_op: 'test' },
       };
 
       expect(() => interpreter.execute(program)).toThrow('Unknown operation: unknown_op');
+    });
+
+    it('should throw error for let without in expression', () => {
+      const program = {
+        program: { name: 'Test' },
+        expression: {
+          let: {
+            x: 5,
+          },
+        },
+      };
+
+      expect(() => interpreter.execute(program)).toThrow('let operation requires an "in" expression');
     });
   });
 });

@@ -17,15 +17,17 @@ describe('spec-loader', () => {
       expect(spec.metadata.name).toBe('Franka');
       expect(spec.metadata.version).toBe('1.0.0');
       expect(spec.metadata.description).toContain('collaboration');
-      expect(spec.metadata.file_extension).toBe('.franka');
+      expect(spec.metadata.file_extension).toBe('.yaml');
       expect(spec.metadata.syntax_format).toBe('yaml');
     });
 
     it('should have operations defined', () => {
       const spec = loadLanguageSpec();
+      expect(spec.syntax.operations.let).toBeInstanceOf(Array);
       expect(spec.syntax.operations.string).toBeInstanceOf(Array);
       expect(spec.syntax.operations.boolean).toBeInstanceOf(Array);
       expect(spec.syntax.operations.control).toBeInstanceOf(Array);
+      expect(spec.syntax.operations.let.length).toBeGreaterThan(0);
       expect(spec.syntax.operations.string.length).toBeGreaterThan(0);
       expect(spec.syntax.operations.boolean.length).toBeGreaterThan(0);
       expect(spec.syntax.operations.control.length).toBeGreaterThan(0);
@@ -58,12 +60,7 @@ describe('spec-loader', () => {
       const spec = loadLanguageSpec();
       const ifOp = spec.syntax.operations.control.find((op) => op.name === 'if');
       expect(ifOp).toBeDefined();
-
-      const printOp = spec.syntax.operations.control.find((op) => op.name === 'print');
-      expect(printOp).toBeDefined();
-
-      const assignOp = spec.syntax.operations.control.find((op) => op.name === 'assign');
-      expect(assignOp).toBeDefined();
+      expect(ifOp?.description).toContain('Conditional');
     });
 
     it('should have data types defined', () => {
@@ -86,7 +83,7 @@ describe('spec-loader', () => {
       const helloWorld = spec.examples.find((ex) => ex.name === 'Hello World');
       expect(helloWorld).toBeDefined();
       expect(helloWorld?.code).toContain('program:');
-      expect(helloWorld?.code).toContain('operations:');
+      expect(helloWorld?.code).toContain('expression:');
     });
 
     it('should have program structure defined', () => {
@@ -99,11 +96,11 @@ describe('spec-loader', () => {
       expect(programKey).toBeDefined();
       expect(programKey?.required).toBe(true);
 
-      const operationsKey = spec.syntax.program_structure.root_keys.find(
-        (k) => k.name === 'operations'
+      const expressionKey = spec.syntax.program_structure.root_keys.find(
+        (k) => k.name === 'expression'
       );
-      expect(operationsKey).toBeDefined();
-      expect(operationsKey?.required).toBe(true);
+      expect(expressionKey).toBeDefined();
+      expect(expressionKey?.required).toBe(true);
     });
   });
 
@@ -119,7 +116,7 @@ describe('spec-loader', () => {
       const metadata = getMetadata();
       expect(metadata.name).toBe('Franka');
       expect(metadata.version).toBe('1.0.0');
-      expect(metadata.file_extension).toBe('.franka');
+      expect(metadata.file_extension).toBe('.yaml');
       expect(metadata.syntax_format).toBe('yaml');
     });
   });

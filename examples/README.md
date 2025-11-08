@@ -4,24 +4,24 @@ This directory contains example Franka programs demonstrating the YAML-based syn
 
 ## Examples
 
-### hello.franka
-A simple "Hello World" program that demonstrates the basic program structure.
+### hello.yaml
+A simple "Hello World" program that demonstrates the basic program structure and returns a greeting value.
 
-### string-operations.franka
-Demonstrates string manipulation operations including:
+### string-operations.yaml
+Demonstrates string manipulation operations using let/in bindings including:
 - String concatenation (`concat`)
 - Uppercase conversion (`uppercase`)
 - Lowercase conversion (`lowercase`)
 
-### boolean-logic.franka
-Demonstrates boolean operations including:
+### boolean-logic.yaml
+Demonstrates boolean operations using let/in bindings including:
 - Logical AND (`and`)
 - Logical OR (`or`)
 - Logical NOT (`not`)
 - Conditional execution (`if`)
 
-### conditional-string.franka
-Combines boolean and string operations to show how they work together:
+### conditional-string.yaml
+Combines boolean and string operations with nested let/in bindings to show how they work together:
 - Equality comparison (`equals`)
 - Conditional logic with string manipulation
 
@@ -30,12 +30,12 @@ Combines boolean and string operations to show how they work together:
 To run any of these examples:
 
 ```bash
-npm run cli -- run examples/hello.franka
+npm run cli -- run examples/hello.yaml
 ```
 
 ## Syntax Overview
 
-Franka programs are written in YAML format with operation names as keys:
+Franka is a pure functional language. Programs are written in YAML format and evaluate to a single value:
 
 ```yaml
 program:
@@ -46,27 +46,33 @@ variables:
   variable_name: value
   another_var: value
 
-operations:
-  # Simple operation with direct value
-  - print: "Hello, World!"
+expression:
+  # Simple value expression
+  "Hello, World!"
   
-  # Operation with named arguments
-  - assign:
-      variable: "result"
-      value: "Success"
-  
-  # Nested operations
-  - assign:
-      variable: "message"
-      value:
-        concat:
-          - "Hello, "
-          - "$name"
+  # Or use let/in for bindings
+  let:
+    result: "Success"
+    message:
+      concat:
+        - "Hello, "
+        - "$name"
+    in: "$message"
 ```
 
 Variables are referenced using the `$variable_name` syntax.
 
 ## Supported Operations
+
+### Let Bindings
+- `let`: Define local bindings with an expression to evaluate
+  ```yaml
+  let:
+    x: 5
+    y: 10
+    sum: 15
+    in: "$sum"
+  ```
 
 ### String Operations
 - `concat`: Concatenate strings (array or named args)
@@ -120,22 +126,10 @@ Variables are referenced using the `$variable_name` syntax.
   ```
 
 ### Control Operations
-- `if`: Conditional execution
+- `if`: Conditional expression that returns a value
   ```yaml
   if:
     condition: "$is_valid"
-    then:
-      - print: "Valid!"
-    else:
-      - print: "Invalid!"
-  ```
-- `print`: Print value
-  ```yaml
-  print: "Hello, World!"
-  ```
-- `assign`: Assign value to variable
-  ```yaml
-  assign:
-    variable: "result"
-    value: "Success"
+    then: "Valid!"
+    else: "Invalid!"
   ```
