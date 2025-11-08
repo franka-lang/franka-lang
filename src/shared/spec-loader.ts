@@ -41,6 +41,7 @@ export interface LanguageSpec {
       }>;
     };
     operations: {
+      let: Operation[];
       string: Operation[];
       boolean: Operation[];
       control: Operation[];
@@ -51,6 +52,7 @@ export interface LanguageSpec {
   };
   semantics: {
     scoping: { type: string; description: string };
+    purity: { paradigm: string; description: string };
     type_system: { paradigm: string; description: string };
     evaluation: { strategy: string; description: string };
     variables: { reference_syntax: string; description: string };

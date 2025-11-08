@@ -1,0 +1,36 @@
+# Conditional String Processing Example
+# Combines boolean and string operations using let/in bindings
+
+program:
+  name: "Conditional String Processing"
+  description: "Demonstrate combining boolean and string operations"
+
+variables:
+  username: "alice"
+  expected: "alice"
+
+expression:
+  let:
+    is_match:
+      equals:
+        left: "$username"
+        right: "$expected"
+    result:
+      if:
+        condition: "$is_match"
+        then:
+          let:
+            greeting:
+              concat:
+                - "Welcome, "
+                - "$username"
+                - "!"
+            upper_username:
+              uppercase: "$username"
+            in:
+              concat:
+                - "$greeting"
+                - "\n"
+                - "$upper_username"
+        else: "Unknown user"
+    in: "$result"

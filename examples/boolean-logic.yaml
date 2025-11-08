@@ -1,0 +1,45 @@
+# Boolean Logic Example
+# Demonstrates boolean operations and conditional logic using let/in bindings
+
+program:
+  name: "Boolean Logic"
+  description: "Demonstrate boolean operations"
+
+variables:
+  is_valid: true
+  is_admin: false
+
+expression:
+  let:
+    can_access:
+      and:
+        - "$is_valid"
+        - "$is_admin"
+    access_message:
+      if:
+        condition: "$can_access"
+        then: "Access granted"
+        else: "Access denied"
+    can_view:
+      or:
+        - "$is_valid"
+        - "$is_admin"
+    view_message:
+      if:
+        condition: "$can_view"
+        then: "You can view the content"
+        else: "You cannot view the content"
+    is_guest:
+      not: "$is_admin"
+    guest_message:
+      if:
+        condition: "$is_guest"
+        then: "Welcome, guest!"
+        else: null
+    in:
+      concat:
+        - "$access_message"
+        - "\n"
+        - "$view_message"
+        - "\n"
+        - "$guest_message"

@@ -1,0 +1,30 @@
+# String Operations Example
+# Demonstrates string manipulation operations using let/in bindings
+
+program:
+  name: "String Operations"
+  description: "Demonstrate string concatenation and transformation"
+
+variables:
+  greeting: "Hello"
+  name: "World"
+
+expression:
+  let:
+    message:
+      concat:
+        - "$greeting"
+        - ", "
+        - "$name"
+        - "!"
+    upper_message:
+      uppercase: "$message"
+    lower_message:
+      lowercase: "$message"
+    in:
+      concat:
+        - "$message"
+        - "\n"
+        - "$upper_message"
+        - "\n"
+        - "$lower_message"

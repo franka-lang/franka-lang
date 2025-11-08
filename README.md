@@ -9,10 +9,12 @@ Franka is a modern programming language with a self-documenting specification de
 ## Language Features
 
 - **YAML-Based Syntax**: Programs are written in structured YAML format
+- **Pure Functional**: No side effects - programs evaluate to values
 - **Self-Documenting Specification**: Language specification in YAML format (`spec/language.yaml`)
+- **Let/In Bindings**: Declarative variable bindings with lexical scoping
 - **String Operations**: concat, uppercase, lowercase, length, substring
 - **Boolean Operations**: and, or, not, equals
-- **Control Flow**: if/then/else, variable assignment, print
+- **Control Flow**: if/then/else conditional expressions
 - **Variable References**: Use `$variable_name` to reference variables
 - **CLI Tool**: Command-line interface for running and checking Franka programs
 - **MCP Server**: Model Context Protocol server for AI integration
@@ -57,16 +59,16 @@ npm run cli -- repl             # Start REPL (coming soon)
 
 ```bash
 # Run hello world example
-npm run cli -- run examples/hello.franka
+npm run cli -- run examples/hello.yaml
 
 # Run string operations example
-npm run cli -- run examples/string-operations.franka
+npm run cli -- run examples/string-operations.yaml
 
 # Run boolean logic example
-npm run cli -- run examples/boolean-logic.franka
+npm run cli -- run examples/boolean-logic.yaml
 
 # Check syntax of a program
-npm run cli -- check examples/hello.franka
+npm run cli -- check examples/hello.yaml
 ```
 
 ### MCP Server
@@ -156,11 +158,11 @@ franka-lang/
 ├── spec/                  # Language specification
 │   └── language.yaml      # Self-documenting YAML spec
 ├── examples/              # Example Franka programs
-│   ├── hello.franka      # Hello world
-│   ├── string-operations.franka
-│   ├── boolean-logic.franka
-│   ├── conditional-string.franka
-│   └── README.md         # Examples documentation
+│   ├── hello.yaml         # Hello world
+│   ├── string-operations.yaml
+│   ├── boolean-logic.yaml
+│   ├── conditional-string.yaml
+│   └── README.md          # Examples documentation
 ├── src/
 │   ├── cli/              # Command-line interface
 │   │   └── index.ts
@@ -195,7 +197,7 @@ The Franka language specification is defined in `spec/language.yaml` and include
 
 ### Program Structure
 
-Franka programs are written in YAML format with operation names as keys:
+Franka is a pure functional language where programs evaluate to a single value:
 
 ```yaml
 program:
@@ -206,20 +208,25 @@ variables:
   greeting: "Hello"
   name: "World"
 
-operations:
-  # Operations use the operation name as the key
-  - assign:
-      variable: "message"
-      value:
-        concat:
-          - "$greeting"
-          - ", "
-          - "$name"
-          - "!"
-  - print: "$message"
+expression:
+  # Use let/in for local bindings
+  let:
+    message:
+      concat:
+        - "$greeting"
+        - ", "
+        - "$name"
+        - "!"
+    in: "$message"
 ```
 
 ### Supported Operations
+
+#### Let Bindings
+- `let`: Define local variable bindings with lexical scoping
+  - Each key (except `in`) defines a variable name and its value
+  - The `in` key specifies the expression to evaluate with those bindings
+  - Bindings can reference earlier bindings in the same let block
 
 #### String Operations
 - `concat`: Concatenate strings (accepts array or named args)
@@ -235,9 +242,10 @@ operations:
 - `equals`: Equality comparison (requires named args: left, right)
 
 #### Control Operations
-- `if`: Conditional execution with condition, then, and else branches
-- `print`: Print value to output (accepts value directly or as named arg)
-- `assign`: Assign value to variable (requires named args: variable, value)
+- `if`: Conditional expression that returns a value based on condition
+  - Requires: `condition` (expression to evaluate)
+  - Optional: `then` (expression if condition is true)
+  - Optional: `else` (expression if condition is false)
 
 View the specification file directly or access it programmatically through the API.
 
