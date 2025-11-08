@@ -1,0 +1,35 @@
+# If-Then Chaining Example
+# Demonstrates chaining multiple if-then conditions with a final else
+
+program:
+  name: "If-Then Chaining"
+  description: "Demonstrate chaining conditional expressions"
+
+variables:
+  score: 85
+
+expression:
+  let:
+    grade:
+      - if:
+          equals:
+            left: "$score"
+            right: 100
+        then: "A+ Perfect Score!"
+      - if:
+          and:
+            - { equals: { left: "$score", right: 90 } }
+            - true
+        then: "A Excellent!"
+      - if:
+          equals:
+            left: "$score"
+            right: 85
+        then: "B+ Great Job!"
+      - if:
+          equals:
+            left: "$score"
+            right: 80
+        then: "B Good Work!"
+      - else: "Keep Trying!"
+    in: "$grade"

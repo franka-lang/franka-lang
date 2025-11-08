@@ -200,7 +200,8 @@ describe('FrankaInterpreter', () => {
   });
 
   describe('control flow', () => {
-    it('should execute if-then branch', () => {
+    // Test legacy nested syntax (should still work)
+    it('should execute nested if-then branch (legacy)', () => {
       const program = {
         program: { name: 'Test' },
         expression: {
@@ -216,7 +217,7 @@ describe('FrankaInterpreter', () => {
       expect(result).toBe('True branch');
     });
 
-    it('should execute if-else branch', () => {
+    it('should execute nested if-else branch (legacy)', () => {
       const program = {
         program: { name: 'Test' },
         expression: {
@@ -232,7 +233,7 @@ describe('FrankaInterpreter', () => {
       expect(result).toBe('False branch');
     });
 
-    it('should execute if with complex condition', () => {
+    it('should execute nested if with complex condition (legacy)', () => {
       const program = {
         program: { name: 'Test' },
         variables: { username: 'alice', expected: 'alice' },
@@ -247,6 +248,121 @@ describe('FrankaInterpreter', () => {
 
       const result = interpreter.execute(program);
       expect(result).toBe('Match');
+    });
+
+    // Test new flat syntax
+    it('should execute flat if-then-else (true condition)', () => {
+      const program = {
+        program: { name: 'Test' },
+        expression: {
+          if: true,
+          then: 'True branch',
+          else: 'False branch',
+        },
+      };
+
+      const result = interpreter.execute(program);
+      expect(result).toBe('True branch');
+    });
+
+    it('should execute flat if-then-else (false condition)', () => {
+      const program = {
+        program: { name: 'Test' },
+        expression: {
+          if: false,
+          then: 'True branch',
+          else: 'False branch',
+        },
+      };
+
+      const result = interpreter.execute(program);
+      expect(result).toBe('False branch');
+    });
+
+    it('should execute flat if with complex condition', () => {
+      const program = {
+        program: { name: 'Test' },
+        variables: { username: 'alice', expected: 'alice' },
+        expression: {
+          if: { equals: { left: '$username', right: '$expected' } },
+          then: 'Match',
+          else: 'No match',
+        },
+      };
+
+      const result = interpreter.execute(program);
+      expect(result).toBe('Match');
+    });
+
+    // Test chaining syntax
+    it('should execute if-then chain with first condition true', () => {
+      const program = {
+        program: { name: 'Test' },
+        expression: [
+          { if: true, then: 'First' },
+          { if: true, then: 'Second' },
+          { else: 'Default' },
+        ],
+      };
+
+      const result = interpreter.execute(program);
+      expect(result).toBe('First');
+    });
+
+    it('should execute if-then chain with second condition true', () => {
+      const program = {
+        program: { name: 'Test' },
+        expression: [
+          { if: false, then: 'First' },
+          { if: true, then: 'Second' },
+          { else: 'Default' },
+        ],
+      };
+
+      const result = interpreter.execute(program);
+      expect(result).toBe('Second');
+    });
+
+    it('should execute if-then chain with else fallback', () => {
+      const program = {
+        program: { name: 'Test' },
+        expression: [
+          { if: false, then: 'First' },
+          { if: false, then: 'Second' },
+          { else: 'Default' },
+        ],
+      };
+
+      const result = interpreter.execute(program);
+      expect(result).toBe('Default');
+    });
+
+    it('should execute if-then chain with complex conditions', () => {
+      const program = {
+        program: { name: 'Test' },
+        variables: { score: 85 },
+        expression: [
+          { if: { equals: { left: '$score', right: 100 } }, then: 'Perfect' },
+          { if: { equals: { left: '$score', right: 85 } }, then: 'Great' },
+          { else: 'Good' },
+        ],
+      };
+
+      const result = interpreter.execute(program);
+      expect(result).toBe('Great');
+    });
+
+    it('should execute if-then chain without else (no match)', () => {
+      const program = {
+        program: { name: 'Test' },
+        expression: [
+          { if: false, then: 'First' },
+          { if: false, then: 'Second' },
+        ],
+      };
+
+      const result = interpreter.execute(program);
+      expect(result).toBe(null);
     });
   });
 

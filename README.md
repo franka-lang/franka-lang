@@ -243,9 +243,12 @@ expression:
 
 #### Control Operations
 - `if`: Conditional expression that returns a value based on condition
-  - Requires: `condition` (expression to evaluate)
-  - Optional: `then` (expression if condition is true)
-  - Optional: `else` (expression if condition is false)
+  - Supports three syntax variants:
+    1. **Nested syntax** (legacy): `if: { condition: <expr>, then: <expr>, else: <expr> }`
+    2. **Flat syntax** (recommended): `if: <expr>`, `then: <expr>`, `else: <expr>` on same level
+    3. **Chaining syntax**: List of `if`/`then` pairs with final `else` for if-elif-else patterns
+  - The condition is evaluated, and returns `then` expression if true, `else` expression if false
+  - The `else` branch is optional
 
 View the specification file directly or access it programmatically through the API.
 

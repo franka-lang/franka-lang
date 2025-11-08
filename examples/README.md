@@ -25,6 +25,12 @@ Combines boolean and string operations with nested let/in bindings to show how t
 - Equality comparison (`equals`)
 - Conditional logic with string manipulation
 
+### if-chaining.yaml
+Demonstrates if-then chaining syntax for handling multiple conditional branches:
+- Chain multiple `if`/`then` conditions in a list
+- Final `else` clause for default fallback
+- Useful for implementing if-elif-else patterns
+
 ## Running Examples
 
 To run any of these examples:
@@ -127,9 +133,24 @@ Variables are referenced using the `$variable_name` syntax.
 
 ### Control Operations
 - `if`: Conditional expression that returns a value
-  ```yaml
-  if:
-    condition: "$is_valid"
+  - **Flat syntax (recommended)**:
+    ```yaml
+    if: "$is_valid"
     then: "Valid!"
     else: "Invalid!"
-  ```
+    ```
+  - **Nested syntax (legacy)**:
+    ```yaml
+    if:
+      condition: "$is_valid"
+      then: "Valid!"
+      else: "Invalid!"
+    ```
+  - **Chaining syntax**:
+    ```yaml
+    - if: "$condition1"
+      then: "Result 1"
+    - if: "$condition2"
+      then: "Result 2"
+    - else: "Default"
+    ```
