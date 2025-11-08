@@ -16,26 +16,23 @@ expression:
         - "$is_valid"
         - "$is_admin"
     access_message:
-      if:
-        condition: "$can_access"
-        then: "Access granted"
-        else: "Access denied"
+      if: "$can_access"
+      then: "Access granted"
+      else: "Access denied"
     can_view:
       or:
         - "$is_valid"
         - "$is_admin"
     view_message:
-      if:
-        condition: "$can_view"
-        then: "You can view the content"
-        else: "You cannot view the content"
+      if: "$can_view"
+      then: "You can view the content"
+      else: "You cannot view the content"
     is_guest:
       not: "$is_admin"
     guest_message:
-      if:
-        condition: "$is_guest"
-        then: "Welcome, guest!"
-        else: null
+      if: "$is_guest"
+      then: "Welcome, guest!"
+      else: null
     in:
       concat:
         - "$access_message"

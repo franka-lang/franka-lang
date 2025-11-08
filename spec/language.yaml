@@ -157,25 +157,51 @@ syntax:
     
     control:
       - name: "if"
-        description: "Conditional expression that returns a value"
+        description: "Conditional expression that returns a value. Supports both nested and flat syntax, as well as chaining."
+        syntax_variants:
+          - name: "nested"
+            description: "Original nested syntax (still supported for backward compatibility)"
+            example: |
+              if:
+                condition:
+                  equals:
+                    left: "$name"
+                    right: "Alice"
+                then: "Hello Alice!"
+                else: "Hello stranger!"
+          - name: "flat"
+            description: "Flat syntax with if, then, else on the same indentation level"
+            example: |
+              if:
+                equals:
+                  left: "$name"
+                  right: "Alice"
+              then: "Hello Alice!"
+              else: "Hello stranger!"
+          - name: "chaining"
+            description: "Chain multiple if-then conditions in a list with a final else"
+            example: |
+              - if:
+                  equals:
+                    left: "$score"
+                    right: 100
+                then: "Perfect!"
+              - if:
+                  equals:
+                    left: "$score"
+                    right: 90
+                then: "Excellent!"
+              - else: "Good effort!"
         parameters:
-          - name: "condition"
+          - name: "if / condition"
             type: "any"
-            description: "Condition to evaluate"
+            description: "Condition to evaluate (flat syntax uses 'if', nested syntax uses 'condition')"
           - name: "then"
             type: "expression"
             description: "Expression to evaluate if condition is true"
           - name: "else"
             type: "expression"
             description: "Expression to evaluate if condition is false (optional)"
-        example: |
-          if:
-            condition:
-              equals:
-                left: "$name"
-                right: "Alice"
-            then: "Hello Alice!"
-            else: "Hello stranger!"
 
   data_types:
     primitives:
@@ -291,10 +317,9 @@ examples:
               - "$is_valid"
               - "$is_admin"
           result:
-            if:
-              condition: "$can_access"
-              then: "Access granted"
-              else: "Access denied"
+            if: "$can_access"
+            then: "Access granted"
+            else: "Access denied"
           in: "$result"
   
   - name: "Conditional String Processing"
@@ -314,12 +339,36 @@ examples:
               left: "$username"
               right: "$expected"
           greeting:
-            if:
-              condition: "$is_match"
-              then:
-                concat:
-                  - "Welcome, "
-                  - "$username"
-                  - "!"
-              else: "Unknown user"
+            if: "$is_match"
+            then:
+              concat:
+                - "Welcome, "
+                - "$username"
+                - "!"
+            else: "Unknown user"
           in: "$greeting"
+
+  - name: "If-Then Chaining"
+    description: "Chain multiple conditional expressions"
+    code: |
+      program:
+        name: "If-Then Chaining"
+      
+      variables:
+        score: 85
+      
+      expression:
+        let:
+          grade:
+            - if:
+                equals:
+                  left: "$score"
+                  right: 100
+              then: "A+ Perfect!"
+            - if:
+                equals:
+                  left: "$score"
+                  right: 85
+              then: "B+ Great!"
+            - else: "Keep Trying!"
+          in: "$grade"

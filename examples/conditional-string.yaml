@@ -16,21 +16,20 @@ expression:
         left: "$username"
         right: "$expected"
     result:
-      if:
-        condition: "$is_match"
-        then:
-          let:
-            greeting:
-              concat:
-                - "Welcome, "
-                - "$username"
-                - "!"
-            upper_username:
-              uppercase: "$username"
-            in:
-              concat:
-                - "$greeting"
-                - "\n"
-                - "$upper_username"
-        else: "Unknown user"
+      if: "$is_match"
+      then:
+        let:
+          greeting:
+            concat:
+              - "Welcome, "
+              - "$username"
+              - "!"
+          upper_username:
+            uppercase: "$username"
+          in:
+            concat:
+              - "$greeting"
+              - "\n"
+              - "$upper_username"
+      else: "Unknown user"
     in: "$result"

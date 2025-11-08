@@ -60,9 +60,13 @@ export class FrankaInterpreter {
       return expression as FrankaValue;
     }
 
-    // Handle arrays - arrays are not directly returned as values, they're used in operations
+    // Handle arrays for if/then/else chaining
     if (Array.isArray(expression)) {
-      // This shouldn't happen in well-formed programs, but handle it gracefully
+      // Check if this is an if/then/else chain
+      if (this.isIfChain(expression)) {
+        return this.executeIfChain(expression);
+      }
+      // Arrays are not directly returned as values, they're used in operations
       throw new Error('Arrays cannot be used as standalone expressions');
     }
 
@@ -71,6 +75,11 @@ export class FrankaInterpreter {
     if (keys.length === 0) {
       // Empty objects are not valid expressions
       return null;
+    }
+
+    // Check if this is a flat if/then/else structure
+    if (keys.includes('if') && (keys.includes('then') || keys.includes('else'))) {
+      return this.executeFlatIf(expression);
     }
 
     const operationName = keys[0];
@@ -257,6 +266,79 @@ export class FrankaInterpreter {
         return this.evaluate(argsObj.else);
       }
     }
+    return null;
+  }
+
+  private executeFlatIf(expr: Record<string, unknown>): FrankaValue {
+    // Handle flat if/then/else structure where if, then, else are at the same level
+    if (!('if' in expr)) {
+      throw new Error('Flat if structure requires "if" key');
+    }
+
+    const condition = this.evaluate(expr.if as FrankaExpression);
+
+    if (Boolean(condition)) {
+      if ('then' in expr) {
+        return this.evaluate(expr.then as FrankaExpression);
+      }
+    } else {
+      if ('else' in expr) {
+        return this.evaluate(expr.else as FrankaExpression);
+      }
+    }
+    return null;
+  }
+
+  private isIfChain(arr: unknown[]): boolean {
+    // Check if the array is an if/then/else chain
+    // Each element should be an object with either 'if' and 'then' keys, or just 'else' key
+    if (arr.length === 0) return false;
+
+    for (let i = 0; i < arr.length - 1; i++) {
+      const item = arr[i];
+      if (
+        !item ||
+        typeof item !== 'object' ||
+        !('if' in item) ||
+        !('then' in item) ||
+        Array.isArray(item)
+      ) {
+        return false;
+      }
+    }
+
+    // Last element can be either if/then or just else
+    const lastItem = arr[arr.length - 1];
+    if (!lastItem || typeof lastItem !== 'object' || Array.isArray(lastItem)) {
+      return false;
+    }
+
+    const lastKeys = Object.keys(lastItem);
+    return (
+      (lastKeys.includes('if') && lastKeys.includes('then')) || lastKeys.includes('else')
+    );
+  }
+
+  private executeIfChain(chain: unknown[]): FrankaValue {
+    // Execute an if/then/else chain
+    for (const item of chain) {
+      const itemObj = item as Record<string, unknown>;
+
+      // Check if this is an else clause (final fallback)
+      if ('else' in itemObj && !('if' in itemObj)) {
+        return this.evaluate(itemObj.else as FrankaExpression);
+      }
+
+      // Check if condition is met
+      if ('if' in itemObj && 'then' in itemObj) {
+        const condition = this.evaluate(itemObj.if as FrankaExpression);
+        if (Boolean(condition)) {
+          return this.evaluate(itemObj.then as FrankaExpression);
+        }
+      }
+    }
+
+    // No condition was met and no else clause
     return null;
   }
 }
