@@ -5,4 +5,4 @@ program:
   name: "Hello World"
   description: "A simple greeting program"
 
-expression: "Hello, Franka!"
+logic: "Hello, Franka!"
