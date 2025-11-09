@@ -44,8 +44,8 @@ Demonstrates a program with multiple named output declarations:
 - Useful for programs that conceptually produce multiple results
 
 ### get-set-basic.yaml
-Demonstrates the new `get` and `set` operations for input/output handling:
-- Uses `get: varname` to reference input variables (recommended)
+Demonstrates the `get` and `set` operations for input/output handling:
+- Uses `get: varname` to reference input variables
 - Uses `set: { output: value }` to set multiple named outputs
 - Shows how to use both operations together in a program
 
@@ -104,9 +104,11 @@ expression:
       get: message
 ```
 
-Variables can be referenced using:
-- **Recommended**: `get: varname` syntax
-- **Legacy**: `$variable_name` syntax (still supported for backward compatibility)
+Variables are referenced using the `get: varname` syntax:
+
+```yaml
+get: variable_name
+```
 
 For programs with multiple named outputs, use the `set` operation to return an object:
 
@@ -126,7 +128,7 @@ expression:
 ## Supported Operations
 
 ### Input/Output Operations
-- `get: varname`: Get an input variable value by name (recommended)
+- `get: varname`: Get an input variable value by name
   ```yaml
   get: username
   ```
