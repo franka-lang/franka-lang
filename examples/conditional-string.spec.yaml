@@ -1,15 +1,15 @@
 tests:
   - description: "Default - matching usernames"
-    expectedOutputs: "Welcome, alice!\nALICE"
+    expectedOutput: "Welcome, alice!\nALICE"
 
   - description: "Custom matching usernames"
-    inputs:
+    input:
       username: "bob"
       expected: "bob"
-    expectedOutputs: "Welcome, bob!\nBOB"
+    expectedOutput: "Welcome, bob!\nBOB"
 
   - description: "Non-matching usernames"
-    inputs:
+    input:
       username: "charlie"
       expected: "alice"
-    expectedOutputs: "Unknown user"
+    expectedOutput: "Unknown user"

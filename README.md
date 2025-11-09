@@ -80,12 +80,12 @@ Franka supports automatic testing through spec files. Create a file named `progr
 ```yaml
 tests:
   - description: "Test with default inputs"
-    expectedOutputs: "Expected result"
+    expectedOutput: "Expected result"
     
   - description: "Test with custom inputs"
-    inputs:
+    input:
       variable: "custom value"
-    expectedOutputs: "Different result"
+    expectedOutput: "Different result"
 ```
 
 The `check` command automatically discovers and runs spec files, reporting test results.

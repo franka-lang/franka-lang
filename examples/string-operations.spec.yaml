@@ -1,21 +1,21 @@
 tests:
   - description: "Default inputs"
-    expectedOutputs: "Hello, World!\nHELLO, WORLD!\nhello, world!"
+    expectedOutput: "Hello, World!\nHELLO, WORLD!\nhello, world!"
 
   - description: "Custom greeting"
-    inputs:
+    input:
       greeting: "Hi"
       name: "Franka"
-    expectedOutputs: "Hi, Franka!\nHI, FRANKA!\nhi, franka!"
+    expectedOutput: "Hi, Franka!\nHI, FRANKA!\nhi, franka!"
 
   - description: "Empty strings"
-    inputs:
+    input:
       greeting: ""
       name: ""
-    expectedOutputs: ", !\n, !\n, !"
+    expectedOutput: ", !\n, !\n, !"
 
   - description: "Single character"
-    inputs:
+    input:
       greeting: "H"
       name: "F"
-    expectedOutputs: "H, F!\nH, F!\nh, f!"
+    expectedOutput: "H, F!\nH, F!\nh, f!"

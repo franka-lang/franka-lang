@@ -5,8 +5,8 @@ import { FrankaInterpreter, FrankaValue, FrankaProgram } from './interpreter';
 
 export interface TestCase {
   description?: string;
-  inputs?: Record<string, FrankaValue>;
-  expectedOutputs: FrankaValue | Record<string, FrankaValue>;
+  input?: Record<string, FrankaValue>;
+  expectedOutput: FrankaValue | Record<string, FrankaValue>;
 }
 
 export interface ProgramSpec {
@@ -54,8 +54,8 @@ export class SpecRunner {
       if (!test || typeof test !== 'object') {
         throw new Error(`Invalid test case at index ${i}: must be an object`);
       }
-      if (!('expectedOutputs' in test)) {
-        throw new Error(`Invalid test case at index ${i}: must contain "expectedOutputs" property`);
+      if (!('expectedOutput' in test)) {
+        throw new Error(`Invalid test case at index ${i}: must contain "expectedOutput" property`);
       }
     }
 
@@ -93,10 +93,10 @@ export class SpecRunner {
       // Create a modified program with test inputs
       const testProgram = { ...program };
 
-      // If test case has inputs, merge them with program defaults
-      if (testCase.inputs) {
+      // If test case has input, merge them with program defaults
+      if (testCase.input) {
         testProgram.input = testProgram.input || {};
-        for (const [key, value] of Object.entries(testCase.inputs)) {
+        for (const [key, value] of Object.entries(testCase.input)) {
           if (!(key in testProgram.input)) {
             // Input not declared in program
             throw new Error(`Input "${key}" is not declared in the program`);
@@ -113,7 +113,7 @@ export class SpecRunner {
       const actual = this.interpreter.execute(testProgram);
 
       // Compare actual with expected
-      const matches = this.compareOutputs(testCase.expectedOutputs, actual);
+      const matches = this.compareOutputs(testCase.expectedOutput, actual);
 
       if (matches) {
         return {
@@ -124,7 +124,7 @@ export class SpecRunner {
         return {
           passed: false,
           description: testCase.description,
-          expected: testCase.expectedOutputs,
+          expected: testCase.expectedOutput,
           actual,
           error: 'Output mismatch',
         };
@@ -133,7 +133,7 @@ export class SpecRunner {
       return {
         passed: false,
         description: testCase.description,
-        expected: testCase.expectedOutputs,
+        expected: testCase.expectedOutput,
         error: error instanceof Error ? error.message : String(error),
       };
     }

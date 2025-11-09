@@ -27,17 +27,17 @@ describe('SpecRunner', () => {
       const specContent = `
 tests:
   - description: "Test case 1"
-    inputs:
+    input:
       greeting: "Hi"
-    expectedOutputs: "Hi, World!"
+    expectedOutput: "Hi, World!"
 `;
       fs.writeFileSync(specPath, specContent);
 
       const spec = runner.loadSpec(specPath);
       expect(spec.tests).toHaveLength(1);
       expect(spec.tests[0].description).toBe('Test case 1');
-      expect(spec.tests[0].inputs).toEqual({ greeting: 'Hi' });
-      expect(spec.tests[0].expectedOutputs).toBe('Hi, World!');
+      expect(spec.tests[0].input).toEqual({ greeting: 'Hi' });
+      expect(spec.tests[0].expectedOutput).toBe('Hi, World!');
     });
 
     it('should throw error for missing spec file', () => {
@@ -56,12 +56,12 @@ tests:
       const specContent = `
 tests:
   - description: "Missing expected outputs"
-    inputs:
+    input:
       greeting: "Hi"
 `;
       fs.writeFileSync(specPath, specContent);
 
-      expect(() => runner.loadSpec(specPath)).toThrow('must contain "expectedOutputs"');
+      expect(() => runner.loadSpec(specPath)).toThrow('must contain "expectedOutput"');
     });
   });
 
@@ -123,8 +123,8 @@ tests:
 
       const testCase = {
         description: 'Test with Hi',
-        inputs: { greeting: 'Hi' },
-        expectedOutputs: 'Hi',
+        input: { greeting: 'Hi' },
+        expectedOutput: 'Hi',
       };
 
       const result = runner.runTest(program, testCase);
@@ -146,8 +146,8 @@ tests:
 
       const testCase = {
         description: 'Test with mismatch',
-        inputs: { greeting: 'Hi' },
-        expectedOutputs: 'Hello',
+        input: { greeting: 'Hi' },
+        expectedOutput: 'Hello',
       };
 
       const result = runner.runTest(program, testCase);
@@ -164,7 +164,7 @@ tests:
       };
 
       const testCase = {
-        expectedOutputs: 'anything',
+        expectedOutput: 'anything',
       };
 
       const result = runner.runTest(program, testCase);
@@ -199,8 +199,8 @@ tests:
       };
 
       const testCase = {
-        inputs: { name: 'Franka' },
-        expectedOutputs: {
+        input: { name: 'Franka' },
+        expectedOutput: {
           greeting: 'Hello, Franka',
           length: 13,
         },
@@ -217,7 +217,7 @@ tests:
       };
 
       const testCase = {
-        expectedOutputs: 'Hello, World!',
+        expectedOutput: 'Hello, World!',
       };
 
       const result = runner.runTest(program, testCase);
@@ -237,8 +237,8 @@ tests:
       };
 
       const testCase = {
-        inputs: { undeclared: 'value' },
-        expectedOutputs: 'anything',
+        input: { undeclared: 'value' },
+        expectedOutput: 'anything',
       };
 
       const result = runner.runTest(program, testCase);
@@ -269,17 +269,17 @@ logic:
       const specContent = `
 tests:
   - description: "Test 1"
-    inputs:
+    input:
       message: "Hi"
-    expectedOutputs: "Hi"
+    expectedOutput: "Hi"
   - description: "Test 2"
-    inputs:
+    input:
       message: "World"
-    expectedOutputs: "World"
+    expectedOutput: "World"
   - description: "Test 3 - should fail"
-    inputs:
+    input:
       message: "Fail"
-    expectedOutputs: "Wrong"
+    expectedOutput: "Wrong"
 `;
 
       fs.writeFileSync(programPath, programContent);

@@ -89,22 +89,22 @@ A spec file contains a list of test cases:
 ```yaml
 tests:
   - description: "Test case description (optional)"
-    inputs:
+    input:
       variable_name: value
       another_var: value
-    expectedOutputs: "Expected result"
+    expectedOutput: "Expected result"
     
   - description: "Another test case"
-    inputs:
+    input:
       variable_name: different_value
-    expectedOutputs: "Different result"
+    expectedOutput: "Different result"
 ```
 
 **Key elements:**
 - `tests`: Array of test cases (required)
 - `description`: Human-readable description of the test (optional)
-- `inputs`: Object mapping input variable names to test values (optional)
-- `expectedOutputs`: The expected output from the program (required)
+- `input`: Object mapping input variable names to test values (optional)
+- `expectedOutput`: The expected output from the program (required)
   - For single output programs: a value (string, number, boolean)
   - For multiple output programs: an object with output names and values
 
