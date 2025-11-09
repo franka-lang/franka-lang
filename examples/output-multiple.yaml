@@ -13,16 +13,21 @@ input:
 output:
   result:
     type: string
-  is_positive:
+  matches_default:
     type: boolean
-  doubled:
+  original:
     type: number
 
 logic:
-  let:
-    doubled_value:
+  set:
+    result:
       concat:
-        - "Value doubled: "
+        - "The value is "
         - get: value
-  in:
-    get: doubled_value
+    matches_default:
+      equals:
+        left:
+          get: value
+        right: 42
+    original:
+      get: value
