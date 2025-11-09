@@ -10,10 +10,10 @@ describe('Examples Integration Tests', () => {
     interpreter = new FrankaInterpreter();
   });
 
-  // Get all .yaml files from examples directory
+  // Get all .yaml files from examples directory, excluding spec files
   const exampleFiles = fs
     .readdirSync(examplesDir)
-    .filter((file) => file.endsWith('.yaml'))
+    .filter((file) => file.endsWith('.yaml') && !file.includes('.spec.'))
     .sort();
 
   describe('All examples should execute successfully', () => {
