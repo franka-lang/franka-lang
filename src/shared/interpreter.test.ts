@@ -8,11 +8,11 @@ describe('FrankaInterpreter', () => {
     interpreter = new FrankaInterpreter();
   });
 
-  describe('basic expressions', () => {
+  describe('basic logic', () => {
     it('should evaluate a simple string value', () => {
       const program = {
         program: { name: 'Test' },
-        expression: 'Hello, World!',
+        logic: 'Hello, World!',
       };
 
       const result = interpreter.execute(program);
@@ -28,7 +28,7 @@ describe('FrankaInterpreter', () => {
             default: 'Hello',
           },
         },
-        expression: '$message',
+        logic: '$message',
       };
 
       const result = interpreter.execute(program);
@@ -43,7 +43,7 @@ describe('FrankaInterpreter', () => {
             type: 'string' as const,
           },
         },
-        expression: 'Hello, World!',
+        logic: 'Hello, World!',
       };
 
       const result = interpreter.execute(program);
@@ -55,7 +55,7 @@ describe('FrankaInterpreter', () => {
     it('should create a simple let binding', () => {
       const program = {
         program: { name: 'Test' },
-        expression: {
+        logic: {
           let: {
             x: 5,
             in: '$x',
@@ -70,7 +70,7 @@ describe('FrankaInterpreter', () => {
     it('should allow later bindings to reference earlier ones', () => {
       const program = {
         program: { name: 'Test' },
-        expression: {
+        logic: {
           let: {
             x: 5,
             y: { concat: ['Value is ', '$x'] },
@@ -86,7 +86,7 @@ describe('FrankaInterpreter', () => {
     it('should support nested let bindings', () => {
       const program = {
         program: { name: 'Test' },
-        expression: {
+        logic: {
           let: {
             x: 5,
             result: {
@@ -107,7 +107,7 @@ describe('FrankaInterpreter', () => {
     it('should support flat let/in syntax', () => {
       const program = {
         program: { name: 'Test' },
-        expression: {
+        logic: {
           let: {
             x: 5,
           },
@@ -122,7 +122,7 @@ describe('FrankaInterpreter', () => {
     it('should support flat let/in with multiple bindings', () => {
       const program = {
         program: { name: 'Test' },
-        expression: {
+        logic: {
           let: {
             x: 5,
             y: { concat: ['Value is ', '$x'] },
@@ -138,7 +138,7 @@ describe('FrankaInterpreter', () => {
     it('should support nested flat let/in bindings', () => {
       const program = {
         program: { name: 'Test' },
-        expression: {
+        logic: {
           let: {
             x: 5,
             result: {
@@ -171,7 +171,7 @@ describe('FrankaInterpreter', () => {
             default: 'World',
           },
         },
-        expression: {
+        logic: {
           concat: ['$greeting', ', ', '$name', '!'],
         },
       };
@@ -183,7 +183,7 @@ describe('FrankaInterpreter', () => {
     it('should convert string to uppercase', () => {
       const program = {
         program: { name: 'Test' },
-        expression: {
+        logic: {
           uppercase: 'hello',
         },
       };
@@ -195,7 +195,7 @@ describe('FrankaInterpreter', () => {
     it('should convert string to lowercase', () => {
       const program = {
         program: { name: 'Test' },
-        expression: {
+        logic: {
           lowercase: 'HELLO',
         },
       };
@@ -207,7 +207,7 @@ describe('FrankaInterpreter', () => {
     it('should get string length', () => {
       const program = {
         program: { name: 'Test' },
-        expression: {
+        logic: {
           length: 'Hello',
         },
       };
@@ -219,7 +219,7 @@ describe('FrankaInterpreter', () => {
     it('should extract substring', () => {
       const program = {
         program: { name: 'Test' },
-        expression: {
+        logic: {
           substring: { value: 'Hello World', start: 0, end: 5 },
         },
       };
@@ -233,7 +233,7 @@ describe('FrankaInterpreter', () => {
     it('should perform AND operation', () => {
       const program = {
         program: { name: 'Test' },
-        expression: {
+        logic: {
           and: [true, true],
         },
       };
@@ -245,7 +245,7 @@ describe('FrankaInterpreter', () => {
     it('should perform OR operation', () => {
       const program = {
         program: { name: 'Test' },
-        expression: {
+        logic: {
           or: [false, true],
         },
       };
@@ -257,7 +257,7 @@ describe('FrankaInterpreter', () => {
     it('should perform NOT operation', () => {
       const program = {
         program: { name: 'Test' },
-        expression: {
+        logic: {
           not: false,
         },
       };
@@ -275,7 +275,7 @@ describe('FrankaInterpreter', () => {
             default: 'alice',
           },
         },
-        expression: {
+        logic: {
           equals: { left: '$name', right: 'alice' },
         },
       };
@@ -290,7 +290,7 @@ describe('FrankaInterpreter', () => {
     it('should execute nested if-then branch (legacy)', () => {
       const program = {
         program: { name: 'Test' },
-        expression: {
+        logic: {
           if: {
             condition: true,
             then: 'True branch',
@@ -306,7 +306,7 @@ describe('FrankaInterpreter', () => {
     it('should execute nested if-else branch (legacy)', () => {
       const program = {
         program: { name: 'Test' },
-        expression: {
+        logic: {
           if: {
             condition: false,
             then: 'True branch',
@@ -332,7 +332,7 @@ describe('FrankaInterpreter', () => {
             default: 'alice',
           },
         },
-        expression: {
+        logic: {
           if: {
             condition: { equals: { left: '$username', right: '$expected' } },
             then: 'Match',
@@ -349,7 +349,7 @@ describe('FrankaInterpreter', () => {
     it('should execute flat if-then-else (true condition)', () => {
       const program = {
         program: { name: 'Test' },
-        expression: {
+        logic: {
           if: true,
           then: 'True branch',
           else: 'False branch',
@@ -363,7 +363,7 @@ describe('FrankaInterpreter', () => {
     it('should execute flat if-then-else (false condition)', () => {
       const program = {
         program: { name: 'Test' },
-        expression: {
+        logic: {
           if: false,
           then: 'True branch',
           else: 'False branch',
@@ -387,7 +387,7 @@ describe('FrankaInterpreter', () => {
             default: 'alice',
           },
         },
-        expression: {
+        logic: {
           if: { equals: { left: '$username', right: '$expected' } },
           then: 'Match',
           else: 'No match',
@@ -402,11 +402,7 @@ describe('FrankaInterpreter', () => {
     it('should execute if-then chain with first condition true', () => {
       const program = {
         program: { name: 'Test' },
-        expression: [
-          { if: true, then: 'First' },
-          { if: true, then: 'Second' },
-          { else: 'Default' },
-        ],
+        logic: [{ if: true, then: 'First' }, { if: true, then: 'Second' }, { else: 'Default' }],
       };
 
       const result = interpreter.execute(program);
@@ -416,11 +412,7 @@ describe('FrankaInterpreter', () => {
     it('should execute if-then chain with second condition true', () => {
       const program = {
         program: { name: 'Test' },
-        expression: [
-          { if: false, then: 'First' },
-          { if: true, then: 'Second' },
-          { else: 'Default' },
-        ],
+        logic: [{ if: false, then: 'First' }, { if: true, then: 'Second' }, { else: 'Default' }],
       };
 
       const result = interpreter.execute(program);
@@ -430,11 +422,7 @@ describe('FrankaInterpreter', () => {
     it('should execute if-then chain with else fallback', () => {
       const program = {
         program: { name: 'Test' },
-        expression: [
-          { if: false, then: 'First' },
-          { if: false, then: 'Second' },
-          { else: 'Default' },
-        ],
+        logic: [{ if: false, then: 'First' }, { if: false, then: 'Second' }, { else: 'Default' }],
       };
 
       const result = interpreter.execute(program);
@@ -450,7 +438,7 @@ describe('FrankaInterpreter', () => {
             default: 85,
           },
         },
-        expression: [
+        logic: [
           { if: { equals: { left: '$score', right: 100 } }, then: 'Perfect' },
           { if: { equals: { left: '$score', right: 85 } }, then: 'Great' },
           { else: 'Good' },
@@ -464,7 +452,7 @@ describe('FrankaInterpreter', () => {
     it('should execute if-then chain without else (no match)', () => {
       const program = {
         program: { name: 'Test' },
-        expression: [
+        logic: [
           { if: false, then: 'First' },
           { if: false, then: 'Second' },
         ],
@@ -505,7 +493,7 @@ describe('FrankaInterpreter', () => {
     it('should throw error for undefined variable', () => {
       const program = {
         program: { name: 'Test' },
-        expression: '$undefined',
+        logic: '$undefined',
       };
 
       expect(() => interpreter.execute(program)).toThrow('Undefined variable: undefined');
@@ -519,7 +507,7 @@ describe('FrankaInterpreter', () => {
             type: 'string' as const,
           },
         },
-        expression: '$message',
+        logic: '$message',
       };
 
       expect(() => interpreter.execute(program)).toThrow('Undefined variable: message');
@@ -528,25 +516,23 @@ describe('FrankaInterpreter', () => {
     it('should throw error for unknown operation', () => {
       const program = {
         program: { name: 'Test' },
-        expression: { unknown_op: 'test' },
+        logic: { unknown_op: 'test' },
       };
 
       expect(() => interpreter.execute(program)).toThrow('Unknown operation: unknown_op');
     });
 
-    it('should throw error for let without in expression', () => {
+    it('should throw error for let without in logic', () => {
       const program = {
         program: { name: 'Test' },
-        expression: {
+        logic: {
           let: {
             x: 5,
           },
         },
       };
 
-      expect(() => interpreter.execute(program)).toThrow(
-        'let operation requires an "in" expression'
-      );
+      expect(() => interpreter.execute(program)).toThrow('let operation requires an "in" logic');
     });
   });
 
@@ -557,7 +543,7 @@ describe('FrankaInterpreter', () => {
         output: {
           type: 'string' as const,
         },
-        expression: 'Hello, World!',
+        logic: 'Hello, World!',
       };
 
       const result = interpreter.execute(program);
@@ -575,7 +561,7 @@ describe('FrankaInterpreter', () => {
             type: 'boolean' as const,
           },
         },
-        expression: 'Hello, World!',
+        logic: 'Hello, World!',
       };
 
       const result = interpreter.execute(program);
@@ -588,7 +574,7 @@ describe('FrankaInterpreter', () => {
         output: {
           type: 'invalid' as any,
         },
-        expression: 'Hello',
+        logic: 'Hello',
       };
 
       expect(() => interpreter.execute(program)).toThrow('Invalid output type: invalid');
@@ -602,7 +588,7 @@ describe('FrankaInterpreter', () => {
             type: 'invalid' as any,
           },
         },
-        expression: 'Hello',
+        logic: 'Hello',
       };
 
       expect(() => interpreter.execute(program)).toThrow(
@@ -617,7 +603,7 @@ describe('FrankaInterpreter', () => {
           type: 'string' as const,
           default: 'test',
         } as any,
-        expression: 'Hello',
+        logic: 'Hello',
       };
 
       expect(() => interpreter.execute(program)).toThrow(
@@ -634,7 +620,7 @@ describe('FrankaInterpreter', () => {
             default: 'test',
           } as any,
         },
-        expression: 'Hello',
+        logic: 'Hello',
       };
 
       expect(() => interpreter.execute(program)).toThrow(
@@ -648,7 +634,7 @@ describe('FrankaInterpreter', () => {
         output: {
           result: {} as any,
         },
-        expression: 'Hello',
+        logic: 'Hello',
       };
 
       expect(() => interpreter.execute(program)).toThrow(
@@ -662,7 +648,7 @@ describe('FrankaInterpreter', () => {
         output: {
           type: 'number' as const,
         },
-        expression: 42,
+        logic: 42,
       };
 
       const result = interpreter.execute(program);
@@ -675,7 +661,7 @@ describe('FrankaInterpreter', () => {
         output: {
           type: 'boolean' as const,
         },
-        expression: true,
+        logic: true,
       };
 
       const result = interpreter.execute(program);
@@ -694,7 +680,7 @@ describe('FrankaInterpreter', () => {
         output: {
           type: 'string' as const,
         },
-        expression: {
+        logic: {
           concat: ['$greeting', ', World!'],
         },
       };
@@ -714,7 +700,7 @@ describe('FrankaInterpreter', () => {
             default: 'Hello',
           },
         },
-        expression: {
+        logic: {
           get: 'message',
         },
       };
@@ -736,7 +722,7 @@ describe('FrankaInterpreter', () => {
             default: 'World',
           },
         },
-        expression: {
+        logic: {
           concat: [{ get: 'greeting' }, ', ', { get: 'name' }, '!'],
         },
       };
@@ -748,7 +734,7 @@ describe('FrankaInterpreter', () => {
     it('should throw error for undefined variable with get', () => {
       const program = {
         program: { name: 'Test' },
-        expression: {
+        logic: {
           get: 'undefined',
         },
       };
@@ -759,7 +745,7 @@ describe('FrankaInterpreter', () => {
     it('should throw error if get argument is not a string', () => {
       const program = {
         program: { name: 'Test' },
-        expression: {
+        logic: {
           get: 123,
         } as any,
       };
@@ -779,7 +765,7 @@ describe('FrankaInterpreter', () => {
             type: 'string' as const,
           },
         },
-        expression: {
+        logic: {
           set: {
             result: 'Hello, World!',
           },
@@ -801,7 +787,7 @@ describe('FrankaInterpreter', () => {
             type: 'number' as const,
           },
         },
-        expression: {
+        logic: {
           set: {
             greeting: 'Hello',
             count: 42,
@@ -813,7 +799,7 @@ describe('FrankaInterpreter', () => {
       expect(result).toEqual({ greeting: 'Hello', count: 42 });
     });
 
-    it('should set named outputs with expressions', () => {
+    it('should set named outputs with logic', () => {
       const program = {
         program: { name: 'Test' },
         input: {
@@ -827,7 +813,7 @@ describe('FrankaInterpreter', () => {
             type: 'string' as const,
           },
         },
-        expression: {
+        logic: {
           set: {
             doubled: {
               concat: ['Value: ', { get: 'value' }],
@@ -854,7 +840,7 @@ describe('FrankaInterpreter', () => {
             type: 'string' as const,
           },
         },
-        expression: {
+        logic: {
           if: { get: 'condition' },
           then: {
             set: {
@@ -887,7 +873,7 @@ describe('FrankaInterpreter', () => {
             type: 'string' as const,
           },
         },
-        expression: {
+        logic: {
           if: { get: 'condition' },
           then: {
             set: {
@@ -923,7 +909,7 @@ describe('FrankaInterpreter', () => {
             type: 'boolean' as const,
           },
         },
-        expression: [
+        logic: [
           {
             if: { equals: { left: { get: 'score' }, right: 100 } },
             then: {
@@ -960,7 +946,7 @@ describe('FrankaInterpreter', () => {
     it('should throw error if set argument is not an object', () => {
       const program = {
         program: { name: 'Test' },
-        expression: {
+        logic: {
           set: 'invalid',
         } as any,
       };

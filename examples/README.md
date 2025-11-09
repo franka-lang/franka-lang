@@ -89,8 +89,8 @@ output:
   # count:
   #   type: number
 
-expression:
-  # Simple value expression
+logic:
+  # Simple value logic
   "Hello, World!"
   
   # Or use let/in for bindings
@@ -117,7 +117,7 @@ output:
   count:
     type: number
 
-expression:
+logic:
   set:
     greeting: "Hello, World!"
     count: 42
@@ -140,7 +140,7 @@ expression:
   - Returns an object with output names and values
 
 ### Let Bindings
-- `let`: Define local bindings with an expression to evaluate
+- `let`: Define local bindings with logic to evaluate
   ```yaml
   let:
     x: 5
@@ -209,7 +209,7 @@ expression:
   ```
 
 ### Control Operations
-- `if`: Conditional expression that returns a value
+- `if`: Conditional logic that returns a value
   - **Flat syntax (recommended)**:
     ```yaml
     if:

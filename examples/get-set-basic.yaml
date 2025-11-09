@@ -19,7 +19,7 @@ output:
   category:
     type: string
 
-expression:
+logic:
   let:
     user:
       get: username

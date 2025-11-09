@@ -3,14 +3,14 @@
 
 program:
   name: "If-Then Chaining"
-  description: "Demonstrate chaining conditional expressions"
+  description: "Demonstrate chaining conditional logic"
 
 input:
   score:
     type: number
     default: 85
 
-expression:
+logic:
   let:
     grade:
       - if:

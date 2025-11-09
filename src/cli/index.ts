@@ -71,7 +71,7 @@ function checkFile(filePath: string) {
     if (program.program.description) {
       console.log(`✓ Description: ${program.program.description}`);
     }
-    console.log(`✓ Expression: ${program.expression ? 'present' : 'missing'}`);
+    console.log(`✓ Logic: ${program.logic ? 'present' : 'missing'}`);
     if (program.input) {
       console.log(`✓ Inputs: ${Object.keys(program.input).length}`);
     }
