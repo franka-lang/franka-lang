@@ -18,7 +18,7 @@ output:
   doubled:
     type: number
 
-expression:
+logic:
   let:
     doubled_value:
       concat:

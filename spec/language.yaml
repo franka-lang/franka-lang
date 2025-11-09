@@ -18,7 +18,7 @@ syntax:
   description: "Franka is a pure functional language. Programs are written in YAML format and evaluate to a single value."
   
   program_structure:
-    description: "A Franka program is a YAML document with an expression that evaluates to a value"
+    description: "A Franka program is a YAML document with logic that evaluates to a value"
     root_keys:
       - name: "program"
         description: "Root key containing program metadata"
@@ -29,8 +29,8 @@ syntax:
       - name: "output"
         description: "Output declarations with type definitions (no default values)"
         required: false
-      - name: "expression"
-        description: "Expression to evaluate - can be a value, operation, or let binding"
+      - name: "logic"
+        description: "Logic to evaluate - can be a value, operation, or let binding"
         required: true
     
     input_structure:
@@ -114,7 +114,7 @@ syntax:
         parameters:
           - name: "outputs"
             type: "mapping"
-            description: "Output names as keys, values as expressions to evaluate"
+            description: "Output names as keys, values as logic to evaluate"
         example: |
           set:
             result: "Success"
@@ -148,10 +148,10 @@ syntax:
         parameters:
           - name: "bindings"
             type: "mapping"
-            description: "Variable names as keys, values as expressions. Each binding can reference earlier bindings."
+            description: "Variable names as keys, values as logic. Each binding can reference earlier bindings."
           - name: "in"
-            type: "expression"
-            description: "Expression to evaluate with the bindings in scope"
+            type: "logic"
+            description: "Logic to evaluate with the bindings in scope"
         example: |
           let:
             x: 5
@@ -276,7 +276,7 @@ syntax:
     
     control:
       - name: "if"
-        description: "Conditional expression that returns a value. Supports both nested and flat syntax, as well as chaining."
+        description: "Conditional logic that returns a value. Supports both nested and flat syntax, as well as chaining."
         syntax_variants:
           - name: "nested"
             description: "Original nested syntax (still supported for backward compatibility)"
@@ -320,11 +320,11 @@ syntax:
             type: "any"
             description: "Condition to evaluate (flat syntax uses 'if', nested syntax uses 'condition')"
           - name: "then"
-            type: "expression"
-            description: "Expression to evaluate if condition is true"
+            type: "logic"
+            description: "Logic to evaluate if condition is true"
           - name: "else"
-            type: "expression"
-            description: "Expression to evaluate if condition is false (optional)"
+            type: "logic"
+            description: "Logic to evaluate if condition is false (optional)"
 
   data_types:
     primitives:
@@ -339,7 +339,7 @@ syntax:
 semantics:
   scoping:
     type: "lexical"
-    description: "Let bindings create lexical scopes. Variables are scoped to the 'in' expression of their let block."
+    description: "Let bindings create lexical scopes. Variables are scoped to the 'in' logic of their let block."
   
   purity:
     paradigm: "pure functional"
@@ -351,7 +351,7 @@ semantics:
   
   evaluation:
     strategy: "eager"
-    description: "Expressions are evaluated eagerly. Let bindings are evaluated sequentially, allowing later bindings to reference earlier ones."
+    description: "Logic is evaluated eagerly. Let bindings are evaluated sequentially, allowing later bindings to reference earlier ones."
   
   variables:
     reference_syntax:
@@ -364,8 +364,8 @@ semantics:
   
   outputs:
     single_output:
-      description: "When no 'set' operation is used, the program returns a single value from the expression"
-      example: "expression: \"Hello, World!\""
+      description: "When no 'set' operation is used, the program returns a single value from the logic"
+      example: "logic: \"Hello, World!\""
     multiple_outputs:
       description: "When 'set' operation is used, the program returns an object with named output values"
       syntax: "set: { outputname1: value1, outputname2: value2 }"
@@ -417,7 +417,7 @@ examples:
         name: "Hello World"
         description: "A simple greeting program"
       
-      expression: "Hello, Franka!"
+      logic: "Hello, Franka!"
   
   - name: "String Operations"
     description: "Demonstrate string manipulation with let bindings"
@@ -433,7 +433,7 @@ examples:
           type: string
           default: "World"
       
-      expression:
+      logic:
         let:
           message:
             concat:
@@ -461,7 +461,7 @@ examples:
           type: boolean
           default: false
       
-      expression:
+      logic:
         let:
           can_access:
             and:
@@ -489,7 +489,7 @@ examples:
           type: string
           default: "alice"
       
-      expression:
+      logic:
         let:
           is_match:
             equals:
@@ -510,7 +510,7 @@ examples:
           get: greeting
 
   - name: "If-Then Chaining"
-    description: "Chain multiple conditional expressions"
+    description: "Chain multiple conditional logic"
     code: |
       program:
         name: "If-Then Chaining"
@@ -520,7 +520,7 @@ examples:
           type: number
           default: 85
       
-      expression:
+      logic:
         let:
           grade:
             - if:
@@ -557,7 +557,7 @@ examples:
       output:
         type: string
       
-      expression:
+      logic:
         let:
           message:
             concat:
@@ -588,7 +588,7 @@ examples:
         doubled:
           type: number
       
-      expression:
+      logic:
         let:
           doubled_value:
             concat:
@@ -618,7 +618,7 @@ examples:
         category:
           type: string
       
-      expression:
+      logic:
         let:
           user:
             get: username
@@ -658,7 +658,7 @@ examples:
         passed:
           type: boolean
       
-      expression:
+      logic:
         - if:
             equals:
               left:

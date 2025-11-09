@@ -3,11 +3,11 @@ import * as yaml from 'js-yaml';
 
 export type FrankaValue = string | number | boolean | null;
 
-// Expression types for the pure functional language
-export type FrankaExpression =
+// Logic types for the pure functional language
+export type FrankaLogic =
   | FrankaValue
   | { [key: string]: unknown } // Operations and let bindings
-  | FrankaExpression[]; // Arrays in concat, and, or
+  | FrankaLogic[]; // Arrays in concat, and, or
 
 export interface InputDefinition {
   type: 'string' | 'number' | 'boolean';
@@ -27,7 +27,7 @@ export interface FrankaProgram {
   output?:
     | { type: 'string' | 'number' | 'boolean' } // Single unnamed output
     | Record<string, OutputDefinition>; // Multiple named outputs
-  expression: FrankaExpression;
+  logic: FrankaLogic;
 }
 
 export interface FrankaOperation {
@@ -60,7 +60,7 @@ export class FrankaInterpreter {
       this.validateOutput(program.output);
     }
 
-    const result = this.evaluate(program.expression);
+    const result = this.evaluate(program.logic);
 
     // If outputs were set using 'set:', return them; otherwise return the result
     if (Object.keys(this.outputs).length > 0) {
@@ -111,46 +111,46 @@ export class FrankaInterpreter {
     return this.execute(program);
   }
 
-  private evaluate(expression: FrankaExpression): FrankaValue {
+  private evaluate(logic: FrankaLogic): FrankaValue {
     // Handle primitive values
-    if (expression === null || expression === undefined) {
-      return expression;
+    if (logic === null || logic === undefined) {
+      return logic;
     }
 
     // Handle primitive types (string, number, boolean)
-    if (typeof expression !== 'object') {
-      return expression as FrankaValue;
+    if (typeof logic !== 'object') {
+      return logic as FrankaValue;
     }
 
     // Handle arrays for if/then/else chaining
-    if (Array.isArray(expression)) {
+    if (Array.isArray(logic)) {
       // Check if this is an if/then/else chain
-      if (this.isIfChain(expression)) {
-        return this.executeIfChain(expression);
+      if (this.isIfChain(logic)) {
+        return this.executeIfChain(logic);
       }
       // Arrays are not directly returned as values, they're used in operations
-      throw new Error('Arrays cannot be used as standalone expressions');
+      throw new Error('Arrays cannot be used as standalone logic');
     }
 
     // Handle operations (object with operation name as key)
-    const keys = Object.keys(expression);
+    const keys = Object.keys(logic);
     if (keys.length === 0) {
-      // Empty objects are not valid expressions
+      // Empty objects are not valid logic
       return null;
     }
 
     // Check if this is a flat if/then/else structure
     if (keys.includes('if') && (keys.includes('then') || keys.includes('else'))) {
-      return this.executeFlatIf(expression);
+      return this.executeFlatIf(logic);
     }
 
     // Check if this is a flat let/in structure
     if (keys.includes('let') && keys.includes('in')) {
-      return this.executeFlatLet(expression);
+      return this.executeFlatLet(logic);
     }
 
     const operationName = keys[0];
-    const operationArgs = expression[operationName];
+    const operationArgs = logic[operationName];
 
     switch (operationName) {
       case 'let':
@@ -186,7 +186,7 @@ export class FrankaInterpreter {
 
   private executeLet(args: unknown): FrankaValue {
     if (!args || typeof args !== 'object') {
-      throw new Error('let operation requires bindings and an "in" expression');
+      throw new Error('let operation requires bindings and an "in" logic');
     }
 
     const argsObj = args as Record<string, unknown>;
@@ -195,21 +195,21 @@ export class FrankaInterpreter {
     const savedVariables = { ...this.variables };
 
     // Process bindings - each key is a variable name, each value is the value to bind
-    // The "in" key contains the expression to evaluate with these bindings
-    const inExpression = argsObj.in;
-    if (!inExpression) {
-      throw new Error('let operation requires an "in" expression');
+    // The "in" key contains the logic to evaluate with these bindings
+    const inLogic = argsObj.in;
+    if (!inLogic) {
+      throw new Error('let operation requires an "in" logic');
     }
 
     // Add bindings sequentially so later bindings can reference earlier ones
     for (const [key, value] of Object.entries(argsObj)) {
       if (key !== 'in') {
-        this.variables[key] = this.evaluate(value as FrankaExpression);
+        this.variables[key] = this.evaluate(value as FrankaLogic);
       }
     }
 
-    // Evaluate the "in" expression with the new bindings
-    const result = this.evaluate(inExpression as FrankaExpression);
+    // Evaluate the "in" logic with the new bindings
+    const result = this.evaluate(inLogic as FrankaLogic);
 
     // Restore previous variable scope by clearing and repopulating
     // Don't replace the object to avoid breaking outer scopes
@@ -231,7 +231,7 @@ export class FrankaInterpreter {
     }
 
     const letBindings = expr.let;
-    const inExpression = expr.in;
+    const inLogic = expr.in;
 
     if (!letBindings || typeof letBindings !== 'object' || Array.isArray(letBindings)) {
       throw new Error('let bindings must be an object');
@@ -242,11 +242,11 @@ export class FrankaInterpreter {
 
     // Add bindings sequentially so later bindings can reference earlier ones
     for (const [key, value] of Object.entries(letBindings as Record<string, unknown>)) {
-      this.variables[key] = this.evaluate(value as FrankaExpression);
+      this.variables[key] = this.evaluate(value as FrankaLogic);
     }
 
-    // Evaluate the "in" expression with the new bindings
-    const result = this.evaluate(inExpression as FrankaExpression);
+    // Evaluate the "in" logic with the new bindings
+    const result = this.evaluate(inLogic as FrankaLogic);
 
     // Restore previous variable scope
     for (const key of Object.keys(this.variables)) {
@@ -282,7 +282,7 @@ export class FrankaInterpreter {
     let lastValue: FrankaValue = null;
 
     for (const [outputName, value] of Object.entries(argsObj)) {
-      const evaluatedValue = this.evaluate(value as FrankaExpression);
+      const evaluatedValue = this.evaluate(value as FrankaLogic);
       this.outputs[outputName] = evaluatedValue;
       lastValue = evaluatedValue;
     }
@@ -294,9 +294,9 @@ export class FrankaInterpreter {
   private extractValue(args: unknown): FrankaValue {
     // Helper method to extract value from args (can be direct or in a 'value' property)
     if (args && typeof args === 'object' && !Array.isArray(args) && 'value' in args) {
-      return this.evaluate((args as { value: FrankaExpression }).value);
+      return this.evaluate((args as { value: FrankaLogic }).value);
     }
-    return this.evaluate(args as FrankaExpression);
+    return this.evaluate(args as FrankaLogic);
   }
 
   private executeConcat(args: unknown): string {
@@ -309,7 +309,7 @@ export class FrankaInterpreter {
     } else {
       throw new Error('concat operation requires an array or an object with "values" property');
     }
-    return values.map((v: unknown) => this.evaluate(v as FrankaExpression)).join('');
+    return values.map((v: unknown) => this.evaluate(v as FrankaLogic)).join('');
   }
 
   private executeUppercase(args: unknown): string {
@@ -332,9 +332,9 @@ export class FrankaInterpreter {
       throw new Error('substring operation requires "value" and "start" properties');
     }
     const argsObj = args as {
-      value: FrankaExpression;
-      start: FrankaExpression;
-      end?: FrankaExpression;
+      value: FrankaLogic;
+      start: FrankaLogic;
+      end?: FrankaLogic;
     };
     const value = this.evaluate(argsObj.value);
     const start = this.evaluate(argsObj.start);
@@ -353,7 +353,7 @@ export class FrankaInterpreter {
       throw new Error('and operation requires an array or an object with "values" property');
     }
     return values
-      .map((v: unknown) => this.evaluate(v as FrankaExpression))
+      .map((v: unknown) => this.evaluate(v as FrankaLogic))
       .every((v: FrankaValue) => Boolean(v));
   }
 
@@ -368,7 +368,7 @@ export class FrankaInterpreter {
       throw new Error('or operation requires an array or an object with "values" property');
     }
     return values
-      .map((v: unknown) => this.evaluate(v as FrankaExpression))
+      .map((v: unknown) => this.evaluate(v as FrankaLogic))
       .some((v: FrankaValue) => Boolean(v));
   }
 
@@ -381,7 +381,7 @@ export class FrankaInterpreter {
     if (!args || typeof args !== 'object' || !('left' in args) || !('right' in args)) {
       throw new Error('equals operation requires "left" and "right" properties');
     }
-    const argsObj = args as { left: FrankaExpression; right: FrankaExpression };
+    const argsObj = args as { left: FrankaLogic; right: FrankaLogic };
     const left = this.evaluate(argsObj.left);
     const right = this.evaluate(argsObj.right);
     return left === right;
@@ -392,9 +392,9 @@ export class FrankaInterpreter {
       throw new Error('if operation requires "condition" property');
     }
     const argsObj = args as {
-      condition: FrankaExpression;
-      then?: FrankaExpression;
-      else?: FrankaExpression;
+      condition: FrankaLogic;
+      then?: FrankaLogic;
+      else?: FrankaLogic;
     };
     const condition = this.evaluate(argsObj.condition);
 
@@ -416,15 +416,15 @@ export class FrankaInterpreter {
       throw new Error('Flat if structure requires "if" key');
     }
 
-    const condition = this.evaluate(expr.if as FrankaExpression);
+    const condition = this.evaluate(expr.if as FrankaLogic);
 
     if (Boolean(condition)) {
       if ('then' in expr) {
-        return this.evaluate(expr.then as FrankaExpression);
+        return this.evaluate(expr.then as FrankaLogic);
       }
     } else {
       if ('else' in expr) {
-        return this.evaluate(expr.else as FrankaExpression);
+        return this.evaluate(expr.else as FrankaLogic);
       }
     }
     return null;
@@ -465,14 +465,14 @@ export class FrankaInterpreter {
 
       // Check if this is an else clause (final fallback)
       if ('else' in itemObj && !('if' in itemObj)) {
-        return this.evaluate(itemObj.else as FrankaExpression);
+        return this.evaluate(itemObj.else as FrankaLogic);
       }
 
       // Check if condition is met
       if ('if' in itemObj && 'then' in itemObj) {
-        const condition = this.evaluate(itemObj.if as FrankaExpression);
+        const condition = this.evaluate(itemObj.if as FrankaLogic);
         if (Boolean(condition)) {
-          return this.evaluate(itemObj.then as FrankaExpression);
+          return this.evaluate(itemObj.then as FrankaLogic);
         }
       }
     }

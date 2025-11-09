@@ -83,7 +83,7 @@ describe('spec-loader', () => {
       const helloWorld = spec.examples.find((ex) => ex.name === 'Hello World');
       expect(helloWorld).toBeDefined();
       expect(helloWorld?.code).toContain('program:');
-      expect(helloWorld?.code).toContain('expression:');
+      expect(helloWorld?.code).toContain('logic:');
     });
 
     it('should have program structure defined', () => {
@@ -96,11 +96,9 @@ describe('spec-loader', () => {
       expect(programKey).toBeDefined();
       expect(programKey?.required).toBe(true);
 
-      const expressionKey = spec.syntax.program_structure.root_keys.find(
-        (k) => k.name === 'expression'
-      );
-      expect(expressionKey).toBeDefined();
-      expect(expressionKey?.required).toBe(true);
+      const logicKey = spec.syntax.program_structure.root_keys.find((k) => k.name === 'logic');
+      expect(logicKey).toBeDefined();
+      expect(logicKey?.required).toBe(true);
     });
   });
 

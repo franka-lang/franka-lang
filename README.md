@@ -14,7 +14,7 @@ Franka is a modern programming language with a self-documenting specification de
 - **Let/In Bindings**: Declarative variable bindings with lexical scoping
 - **String Operations**: concat, uppercase, lowercase, length, substring
 - **Boolean Operations**: and, or, not, equals
-- **Control Flow**: if/then/else conditional expressions
+- **Control Flow**: if/then/else conditional logic
 - **Input/Output Operations**: 
   - `get: varname` - Reference input variables
   - `set: { output: value }` - Set named outputs
@@ -222,7 +222,7 @@ output:
   # count:
   #   type: number
 
-expression:
+logic:
   # Use let/in for local bindings
   let:
     message:
@@ -244,7 +244,7 @@ output:
   length:
     type: number
 
-expression:
+logic:
   let:
     msg:
       concat:
@@ -265,7 +265,7 @@ expression:
 - **Input**: Declares typed input variables with optional default values
   - Supports `string`, `number`, and `boolean` types
   - Default values are optional
-  - Variables with defaults are available in the expression
+  - Variables with defaults are available in the logic
 
 - **Output**: Declares the expected output type(s) from the program
   - Supports `string`, `number`, and `boolean` types
@@ -281,7 +281,7 @@ expression:
   - Supports flat syntax where `let` and `in` are at the same indentation level (recommended)
   - Also supports legacy nested syntax for backward compatibility
   - Each binding defines a variable name and its value
-  - The `in` expression specifies what to evaluate with those bindings
+  - The `in` logic specifies what to evaluate with those bindings
   - Bindings can reference earlier bindings in the same let block
 
 #### Input/Output Operations
@@ -309,12 +309,12 @@ expression:
 - `equals`: Equality comparison (requires named args: left, right)
 
 #### Control Operations
-- `if`: Conditional expression that returns a value based on condition
+- `if`: Conditional logic that returns a value based on condition
   - Supports three syntax variants:
     1. **Nested syntax** (legacy): `if: { condition: <expr>, then: <expr>, else: <expr> }`
     2. **Flat syntax** (recommended): `if: <expr>`, `then: <expr>`, `else: <expr>` on same level
     3. **Chaining syntax**: List of `if`/`then` pairs with final `else` for if-elif-else patterns
-  - The condition is evaluated, and returns `then` expression if true, `else` expression if false
+  - The condition is evaluated, and returns `then` logic if true, `else` logic if false
   - The `else` branch is optional
 
 View the specification file directly or access it programmatically through the API.
