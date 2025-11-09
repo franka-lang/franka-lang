@@ -20,9 +20,10 @@ logic:
             right: 100
         then: "A+ Perfect Score!"
       - if:
-          and:
-            - { equals: { left: { get: score }, right: 90 } }
-            - true
+          equals:
+            left:
+              get: score
+            right: 90
         then: "A Excellent!"
       - if:
           equals:

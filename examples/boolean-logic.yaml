@@ -40,7 +40,7 @@ logic:
       if:
         get: is_guest
       then: "Welcome, guest!"
-      else: null
+      else: ""
   in:
     concat:
       - get: access_message
