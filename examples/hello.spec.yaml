@@ -1,0 +1,6 @@
+tests:
+  - description: "Default greeting"
+    expectedOutputs: "Hello, Franka!"
+
+  - description: "Test without inputs should use defaults"
+    expectedOutputs: "Hello, Franka!"

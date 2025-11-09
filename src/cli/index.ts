@@ -2,6 +2,7 @@
 
 import { loadLanguageSpec, getVersion } from '../shared/spec-loader';
 import { FrankaInterpreter } from '../shared/interpreter';
+import { SpecRunner } from '../shared/spec-runner';
 import * as fs from 'fs';
 
 function showHelp() {
@@ -62,6 +63,8 @@ function checkFile(filePath: string) {
     process.exit(1);
   }
 
+  let hasErrors = false;
+
   try {
     const interpreter = new FrankaInterpreter();
     const program = interpreter.loadProgram(filePath);
@@ -86,6 +89,56 @@ function checkFile(filePath: string) {
   } catch (error) {
     console.error('✗ Syntax error:');
     console.error(error instanceof Error ? error.message : String(error));
+    process.exit(1);
+  }
+
+  // Check for spec file and run tests
+  try {
+    const specRunner = new SpecRunner();
+    const specPath = specRunner.findSpecFile(filePath);
+
+    if (specPath) {
+      console.log('\n--- Running Tests ---');
+      console.log(`Found spec file: ${specPath}`);
+
+      const results = specRunner.runAllTests(filePath, specPath);
+
+      let passedCount = 0;
+      let failedCount = 0;
+
+      results.forEach((result, index) => {
+        if (result.passed) {
+          passedCount++;
+          const desc = result.description ? `: ${result.description}` : '';
+          console.log(`✓ Test ${index + 1}${desc}`);
+        } else {
+          failedCount++;
+          hasErrors = true;
+          const desc = result.description ? `: ${result.description}` : '';
+          console.log(`✗ Test ${index + 1}${desc}`);
+          if (result.error) {
+            console.log(`  Error: ${result.error}`);
+          }
+          if (result.expected !== undefined) {
+            console.log(`  Expected: ${JSON.stringify(result.expected)}`);
+          }
+          if (result.actual !== undefined) {
+            console.log(`  Actual: ${JSON.stringify(result.actual)}`);
+          }
+        }
+      });
+
+      console.log(`\nTest Results: ${passedCount} passed, ${failedCount} failed`);
+    } else {
+      console.log('\nNo spec file found (optional)');
+    }
+  } catch (error) {
+    console.error('\n✗ Error running tests:');
+    console.error(error instanceof Error ? error.message : String(error));
+    hasErrors = true;
+  }
+
+  if (hasErrors) {
     process.exit(1);
   }
 }

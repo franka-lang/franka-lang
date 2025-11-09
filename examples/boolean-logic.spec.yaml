@@ -1,0 +1,21 @@
+tests:
+  - description: "Default: valid but not admin"
+    expectedOutputs: "Access denied\nYou can view the content\nWelcome, guest!"
+
+  - description: "Valid admin user"
+    inputs:
+      is_valid: true
+      is_admin: true
+    expectedOutputs: "Access granted\nYou can view the content\n"
+
+  - description: "Invalid non-admin user"
+    inputs:
+      is_valid: false
+      is_admin: false
+    expectedOutputs: "Access denied\nYou cannot view the content\nWelcome, guest!"
+
+  - description: "Invalid admin user"
+    inputs:
+      is_valid: false
+      is_admin: true
+    expectedOutputs: "Access denied\nYou can view the content\n"
