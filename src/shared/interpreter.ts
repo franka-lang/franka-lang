@@ -122,7 +122,7 @@ export class FrankaInterpreter {
       return logic as FrankaValue;
     }
 
-    // Handle arrays for if/then/else chaining or operation chaining
+    // Handle arrays for if/then/else chaining, operation chaining, or sequences
     if (Array.isArray(logic)) {
       // Check if this is an if/then/else chain
       if (this.isIfChain(logic)) {
@@ -132,8 +132,8 @@ export class FrankaInterpreter {
       if (this.isOperationChain(logic)) {
         return this.executeOperationChain(logic);
       }
-      // Arrays are not directly returned as values, they're used in operations
-      throw new Error('Arrays cannot be used as standalone logic');
+      // Otherwise, treat it as a sequence of operations to execute in order
+      return this.executeSequence(logic);
     }
 
     // Handle operations (object with operation name as key)
@@ -483,6 +483,25 @@ export class FrankaInterpreter {
 
     // No condition was met and no else clause
     return null;
+  }
+
+  private executeSequence(sequence: unknown[]): FrankaValue {
+    // Execute a sequence of operations in order
+    // If any operation sets outputs, accumulate them
+    // Return the last evaluated value (or null if empty)
+
+    // Sequences must have at least 2 elements to make sense
+    if (sequence.length < 2) {
+      throw new Error('Arrays cannot be used as standalone logic');
+    }
+
+    let lastValue: FrankaValue = null;
+
+    for (const item of sequence) {
+      lastValue = this.evaluate(item as FrankaLogic);
+    }
+
+    return lastValue;
   }
 
   private isOperationChain(arr: unknown[]): boolean {
