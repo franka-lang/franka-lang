@@ -98,10 +98,10 @@ export class FrankaInterpreter {
   getFunctionFromModule(module: FrankaModule, functionName?: string): FrankaFunction {
     // Check if module uses new format with 'functions' key
     const hasNewFormat = 'functions' in module;
-    
+
     let functionsSource: Record<string, unknown>;
     let functionKeys: string[];
-    
+
     if (hasNewFormat) {
       // New format: functions are under 'functions' key
       const functions = module.functions as Record<string, unknown>;
