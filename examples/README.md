@@ -64,6 +64,22 @@ Demonstrates setting different outputs based on conditions:
 - Shows how to conditionally set multiple named outputs
 - Demonstrates if-then chaining with set operations
 
+### issue-example-v1.yaml and issue-example-v2.yaml
+Example modules demonstrating semantically equivalent ways to set outputs:
+- `version1`: Sets `foo` at non-leaf level using sequences
+- `version2`: Fully expanded version with `foo` set at all leaves
+- Both produce identical results for all input combinations
+
+**Spec files:** `issue-example-v1.spec.yaml` and `issue-example-v2.spec.yaml` - Demonstrate the new multi-function spec format with tests grouped by function name.
+
+### multi-function.yaml
+Comprehensive example of a module with multiple functions:
+- `greet`: Returns a greeting message
+- `farewell`: Returns a farewell message  
+- `shout`: Returns message in uppercase
+
+**Spec file:** `multi-function.spec.yaml` - Demonstrates the new multi-function spec format, testing all three functions in a single spec file.
+
 ## Running Examples
 
 To run any of these examples:
@@ -72,19 +88,33 @@ To run any of these examples:
 npm run cli -- run examples/hello.yaml
 ```
 
+To run a specific function in a module:
+
+```bash
+npm run cli -- run examples/multi-function.yaml -f greet
+```
+
 To check syntax and run tests (if a spec file exists):
 
 ```bash
 npm run cli -- check examples/hello.yaml
+
+# Check and test a specific function
+npm run cli -- check examples/multi-function.yaml -f farewell
+
+# Check all functions in a module and run all tests
+npm run cli -- check examples/multi-function.yaml
 ```
 
-## Program Testing with Spec Files
+## Module Testing with Spec Files
 
-Franka programs can have associated spec files that define test cases to validate program behavior. Spec files follow the naming convention `program_name.spec.yaml`.
+Franka modules and programs can have associated spec files that define test cases to validate behavior. Spec files follow the naming convention `<filename>.spec.yaml`.
 
-### Spec File Structure
+### Spec File Formats
 
-A spec file contains a list of test cases:
+#### Legacy Format (Single Function)
+
+For single-function programs or when testing one function at a time:
 
 ```yaml
 tests:
@@ -100,32 +130,73 @@ tests:
     expectedOutput: "Different result"
 ```
 
+This format works with both program and module files. When used with modules, tests apply to the specified function (via `-f` flag) or the first function if no flag is provided.
+
+#### Multi-Function Format (Recommended for Modules)
+
+For modules with multiple functions, group tests by function name:
+
+```yaml
+functions:
+  greet:
+    tests:
+      - description: "Default greeting"
+        expectedOutput: "Hello, World!"
+      - description: "Custom greeting"
+        input:
+          name: "Franka"
+        expectedOutput: "Hello, Franka!"
+  
+  farewell:
+    tests:
+      - description: "Default farewell"
+        expectedOutput: "Goodbye, World!"
+```
+
+This format allows testing multiple functions in a single spec file. When you run `check`:
+- Without `-f` flag: Runs tests for all functions in the spec
+- With `-f functionName` flag: Runs tests only for that specific function
+
+### Test Case Structure
+
 **Key elements:**
-- `tests`: Array of test cases (required)
 - `description`: Human-readable description of the test (optional)
 - `input`: Object mapping input variable names to test values (optional)
-- `expectedOutput`: The expected output from the program (required)
-  - For single output programs: a value (string, number, boolean)
-  - For multiple output programs: an object with output names and values
+- `expectedOutput`: The expected output from the function (required)
+  - For single output: a value (string, number, boolean)
+  - For multiple named outputs: an object with output names and values
 
 ### Running Tests
 
 When you run the `check` command, it automatically discovers and runs spec files:
 
 ```bash
-# Check syntax and run tests
+# Legacy format - check single-function program
 npm run cli -- check examples/hello.yaml
 
+# Multi-function format - check all functions and run all tests
+npm run cli -- check examples/multi-function.yaml
+
+# Multi-function format - check specific function and run its tests
+npm run cli -- check examples/multi-function.yaml -f greet
+
 # Output:
-# Checking Franka program: examples/hello.yaml
-# ✓ Syntax is valid
-# ✓ Program name: Hello World
+# Checking Franka program: examples/multi-function.yaml
+# ✓ Syntax is valid (Module format)
+# ✓ Module name: Multi-function Module
 # ...
 # --- Running Tests ---
-# Found spec file: examples/hello.spec.yaml
-# ✓ Test 1: Default greeting
-# ✓ Test 2: Test without inputs should use defaults
-# Test Results: 2 passed, 0 failed
+# Found spec file: examples/multi-function.spec.yaml
+# ✓ Test 1: [greet] Default greeting
+# ✓ Test 2: [greet] Custom name greeting
+# ✓ Test 3: [greet] Empty name greeting
+# ✓ Test 4: [farewell] Default farewell
+# ✓ Test 5: [farewell] Custom name farewell
+# ✓ Test 6: [farewell] Empty name farewell
+# ✓ Test 7: [shout] Default shout
+# ✓ Test 8: [shout] Custom message shout
+# ✓ Test 9: [shout] Already uppercase message
+# Test Results: 9 passed, 0 failed
 ```
 
 If tests fail, detailed error messages are shown:
@@ -140,10 +211,18 @@ If tests fail, detailed error messages are shown:
 ### Example Spec Files
 
 Check out the existing spec files in this directory:
-- `hello.spec.yaml` - Basic test cases
+
+**Legacy format:**
+- `hello.spec.yaml` - Basic test cases for single-function module
 - `string-operations.spec.yaml` - Multiple test cases with different inputs
 - `boolean-logic.spec.yaml` - Boolean input combinations
 - `conditional-string.spec.yaml` - Conditional logic tests
+- `output-multiple.spec.yaml` - Tests for programs with multiple named outputs
+
+**Multi-function format:**
+- `multi-function.spec.yaml` - Tests for three different functions (greet, farewell, shout) in one file
+- `issue-example-v1.spec.yaml` - Tests for version1 function with multiple output scenarios
+- `issue-example-v2.spec.yaml` - Tests for version2 function demonstrating equivalence
 
 ## Syntax Overview
 

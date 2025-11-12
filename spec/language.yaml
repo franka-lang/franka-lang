@@ -477,11 +477,11 @@ tooling:
             description: "Function name to execute (for module files). If not specified, executes the first function found."
       
       - name: "check"
-        description: "Check syntax without execution"
+        description: "Check syntax and run tests (if spec file exists)"
         usage: "franka check <file> [-f|--function <name>]"
         options:
           - name: "-f, --function"
-            description: "Function name to check (for module files). If not specified, checks all functions."
+            description: "Function name to check (for module files). If not specified, checks all functions and runs all tests."
       
       - name: "repl"
         description: "Start interactive REPL"
@@ -490,6 +490,83 @@ tooling:
       - name: "version"
         description: "Display version information"
         usage: "franka version"
+  
+  testing:
+    description: "Testing framework for Franka programs and modules"
+    spec_file_format:
+      description: "Spec files contain test cases for functions. Named <filename>.spec.yaml alongside the program/module file."
+      legacy_format:
+        description: "Legacy format for single-function programs or modules (backward compatible)"
+        structure: |
+          tests:
+            - description: "Test description"
+              input:
+                varname: value
+              expectedOutput: expected_result
+        example: |
+          tests:
+            - description: "Default greeting"
+              expectedOutput: "Hello, World!"
+            - description: "Custom greeting"
+              input:
+                name: "Franka"
+              expectedOutput: "Hello, Franka!"
+        notes:
+          - "Tests at root level without function grouping"
+          - "Works with both program and module files"
+          - "When used with modules, tests apply to the specified function (via -f flag) or first function"
+      
+      multi_function_format:
+        description: "New format for testing multiple functions in a module (recommended for modules)"
+        structure: |
+          functions:
+            function_name:
+              tests:
+                - description: "Test description"
+                  input:
+                    varname: value
+                  expectedOutput: expected_result
+        example: |
+          functions:
+            greet:
+              tests:
+                - description: "Default greeting"
+                  expectedOutput: "Hello, World!"
+                - description: "Custom greeting"
+                  input:
+                    name: "Franka"
+                  expectedOutput: "Hello, Franka!"
+            farewell:
+              tests:
+                - description: "Default farewell"
+                  expectedOutput: "Goodbye, World!"
+        notes:
+          - "Tests grouped by function name"
+          - "Allows testing multiple functions in a single spec file"
+          - "Only works with module files"
+          - "When -f flag is used, runs tests only for that function"
+          - "Without -f flag, runs tests for all functions in the spec"
+          - "Function names in spec must match function names in module"
+      
+      test_case_structure:
+        description: "Structure of individual test cases (same for both formats)"
+        fields:
+          - name: "description"
+            required: false
+            type: "string"
+            description: "Human-readable description of the test"
+          - name: "input"
+            required: false
+            type: "object"
+            description: "Input values to override defaults (keys must match declared inputs)"
+          - name: "expectedOutput"
+            required: true
+            type: "value or object"
+            description: "Expected result - single value or object with named outputs"
+        notes:
+          - "Test cases without input use the function's default input values"
+          - "expectedOutput can be a single value (string, number, boolean) or an object for multiple named outputs"
+          - "Input values must be declared in the function's input section"
   
   mcp:
     description: "Model Context Protocol server for AI integration"

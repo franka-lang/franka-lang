@@ -1,0 +1,48 @@
+# Multi-function spec file demonstrating testing multiple functions
+# This demonstrates the new format that allows testing multiple functions in one file
+
+functions:
+  greet:
+    tests:
+      - description: "Default greeting"
+        expectedOutput: "Hello, World!"
+
+      - description: "Custom name greeting"
+        input:
+          name: "Franka"
+        expectedOutput: "Hello, Franka!"
+
+      - description: "Empty name greeting"
+        input:
+          name: ""
+        expectedOutput: "Hello, !"
+
+  farewell:
+    tests:
+      - description: "Default farewell"
+        expectedOutput: "Goodbye, World!"
+
+      - description: "Custom name farewell"
+        input:
+          name: "Franka"
+        expectedOutput: "Goodbye, Franka!"
+
+      - description: "Empty name farewell"
+        input:
+          name: ""
+        expectedOutput: "Goodbye, !"
+
+  shout:
+    tests:
+      - description: "Default shout"
+        expectedOutput: "HELLO"
+
+      - description: "Custom message shout"
+        input:
+          message: "franka"
+        expectedOutput: "FRANKA"
+
+      - description: "Already uppercase message"
+        input:
+          message: "LOUD"
+        expectedOutput: "LOUD"

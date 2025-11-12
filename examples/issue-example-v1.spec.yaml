@@ -1,0 +1,37 @@
+# Multi-function spec file demonstrating the new format
+# This spec file tests the version1 function in issue-example-v1.yaml
+
+functions:
+  version1:
+    tests:
+      - description: "cond1=true, cond2=true should set foo=1, bar=A"
+        input:
+          cond1: true
+          cond2: true
+        expectedOutput:
+          foo: 1
+          bar: "A"
+
+      - description: "cond1=true, cond2=false should set foo=1, bar=B"
+        input:
+          cond1: true
+          cond2: false
+        expectedOutput:
+          foo: 1
+          bar: "B"
+
+      - description: "cond1=false should set foo=2, bar=C"
+        input:
+          cond1: false
+          cond2: true
+        expectedOutput:
+          foo: 2
+          bar: "C"
+
+      - description: "cond1=false, cond2=false should also set foo=2, bar=C"
+        input:
+          cond1: false
+          cond2: false
+        expectedOutput:
+          foo: 2
+          bar: "C"

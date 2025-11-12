@@ -82,7 +82,11 @@ npm run cli -- check examples/hello.yaml
 
 #### Module Testing with Spec Files
 
-Franka supports automatic testing through spec files. Create a file named `module_name.spec.yaml` alongside your module:
+Franka supports automatic testing through spec files. Create a file named `<filename>.spec.yaml` alongside your program or module file.
+
+##### Legacy Format (Single Function)
+
+For single-function programs or when testing one function at a time:
 
 ```yaml
 tests:
@@ -95,7 +99,38 @@ tests:
     expectedOutput: "Different result"
 ```
 
-The `check` command automatically discovers and runs spec files, reporting test results.
+##### Multi-Function Format (Recommended for Modules)
+
+For modules with multiple functions, group tests by function name:
+
+```yaml
+functions:
+  greet:
+    tests:
+      - description: "Default greeting"
+        expectedOutput: "Hello, World!"
+      - description: "Custom greeting"
+        input:
+          name: "Franka"
+        expectedOutput: "Hello, Franka!"
+  
+  farewell:
+    tests:
+      - description: "Default farewell"
+        expectedOutput: "Goodbye, World!"
+```
+
+The `check` command automatically discovers and runs spec files:
+
+```bash
+# Check all functions and run all tests in a module
+npm run cli -- check examples/multi-function.yaml
+
+# Check and test a specific function
+npm run cli -- check examples/multi-function.yaml -f greet
+```
+
+See [examples/multi-function.yaml](examples/multi-function.yaml) and [examples/multi-function.spec.yaml](examples/multi-function.spec.yaml) for a complete example.
 
 ### MCP Server
 
