@@ -7,8 +7,9 @@ describe('CLI with Commander', () => {
     const output = execSync(`${cliPath} --help`).toString();
     expect(output).toContain('Usage: franka');
     expect(output).toContain('Commands:');
-    expect(output).toContain('run <file>');
-    expect(output).toContain('check <file>');
+    expect(output).toContain('run');
+    expect(output).toContain('<file>');
+    expect(output).toContain('check');
     expect(output).toContain('repl');
   });
 

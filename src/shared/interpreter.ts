@@ -18,6 +18,26 @@ export interface OutputDefinition {
   type: 'string' | 'number' | 'boolean';
 }
 
+// Function definition within a module
+export interface FrankaFunction {
+  description?: string;
+  input?: Record<string, InputDefinition>;
+  output?:
+    | { type: 'string' | 'number' | 'boolean' } // Single unnamed output
+    | Record<string, OutputDefinition>; // Multiple named outputs
+  logic: FrankaLogic;
+}
+
+// Module structure (new format)
+export interface FrankaModule {
+  module: {
+    name: string;
+    description?: string;
+  };
+  [functionName: string]: FrankaFunction | { name: string; description?: string };
+}
+
+// Legacy program structure (for backward compatibility)
 export interface FrankaProgram {
   program: {
     name: string;
@@ -38,9 +58,79 @@ export class FrankaInterpreter {
   private variables: Record<string, FrankaValue> = {};
   private outputs: Record<string, FrankaValue> = {};
 
+  /**
+   * Load a program from file. Supports both legacy program format and new module format.
+   * For modules, specify functionName to select which function to execute.
+   */
   loadProgram(filePath: string): FrankaProgram {
     const fileContents = fs.readFileSync(filePath, 'utf8');
     return yaml.load(fileContents, { schema: yaml.CORE_SCHEMA }) as FrankaProgram;
+  }
+
+  /**
+   * Load a module from file
+   */
+  loadModule(filePath: string): FrankaModule {
+    const fileContents = fs.readFileSync(filePath, 'utf8');
+    return yaml.load(fileContents, { schema: yaml.CORE_SCHEMA }) as FrankaModule;
+  }
+
+  /**
+   * Check if a file contains a module (new format) or program (legacy format)
+   */
+  isModuleFile(filePath: string): boolean {
+    const fileContents = fs.readFileSync(filePath, 'utf8');
+    const data = yaml.load(fileContents, { schema: yaml.CORE_SCHEMA }) as Record<string, unknown>;
+    return 'module' in data;
+  }
+
+  /**
+   * Get a function from a module by name. If no name is provided, returns the first function found.
+   */
+  getFunctionFromModule(module: FrankaModule, functionName?: string): FrankaFunction {
+    // Get all keys except 'module'
+    const functionKeys = Object.keys(module).filter((key) => key !== 'module');
+
+    if (functionKeys.length === 0) {
+      throw new Error('Module has no functions defined');
+    }
+
+    // If no function name specified, use the first one
+    const targetFunction = functionName || functionKeys[0];
+
+    if (!(targetFunction in module)) {
+      throw new Error(
+        `Function "${targetFunction}" not found in module. Available functions: ${functionKeys.join(', ')}`
+      );
+    }
+
+    const func = module[targetFunction];
+
+    // Validate that it's a function object
+    if (!func || typeof func !== 'object' || !('logic' in func)) {
+      throw new Error(`"${targetFunction}" is not a valid function definition`);
+    }
+
+    return func as FrankaFunction;
+  }
+
+  /**
+   * Convert a module function to program format (for backward compatibility with execute)
+   */
+  functionToProgram(
+    module: FrankaModule,
+    func: FrankaFunction,
+    functionName: string
+  ): FrankaProgram {
+    return {
+      program: {
+        name: `${module.module.name} - ${functionName}`,
+        description: func.description || module.module.description,
+      },
+      input: func.input,
+      output: func.output,
+      logic: func.logic,
+    };
   }
 
   execute(program: FrankaProgram): FrankaValue | Record<string, FrankaValue> {
@@ -106,9 +196,24 @@ export class FrankaInterpreter {
     }
   }
 
-  executeFile(filePath: string): FrankaValue | Record<string, FrankaValue> {
-    const program = this.loadProgram(filePath);
-    return this.execute(program);
+  /**
+   * Execute a file that can be either a program (legacy) or module (new format).
+   * For modules, specify functionName to select which function to execute.
+   */
+  executeFile(filePath: string, functionName?: string): FrankaValue | Record<string, FrankaValue> {
+    if (this.isModuleFile(filePath)) {
+      const module = this.loadModule(filePath);
+      const func = this.getFunctionFromModule(module, functionName);
+      const program = this.functionToProgram(
+        module,
+        func,
+        functionName || Object.keys(module).filter((k) => k !== 'module')[0]
+      );
+      return this.execute(program);
+    } else {
+      const program = this.loadProgram(filePath);
+      return this.execute(program);
+    }
   }
 
   private evaluate(logic: FrankaLogic): FrankaValue {

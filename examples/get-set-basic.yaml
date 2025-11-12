@@ -1,42 +1,44 @@
 # Get and Set Operations Example
 # Demonstrates the new get/set syntax for input/output handling
 
-program:
+module:
   name: "Get and Set Basic"
-  description: "Using get for inputs and set for outputs"
+  description: "Module demonstrating get for inputs and set for outputs"
 
-input:
-  username:
-    type: string
-    default: "alice"
-  age:
-    type: number
-    default: 25
+main:
+  description: "Uses get for inputs and set for outputs"
+  input:
+    username:
+      type: string
+      default: "alice"
+    age:
+      type: number
+      default: 25
 
-output:
-  greeting:
-    type: string
-  category:
-    type: string
+  output:
+    greeting:
+      type: string
+    category:
+      type: string
 
-logic:
-  let:
-    user:
-      get: username
-    user_age:
-      get: age
-  in:
-    set:
-      greeting:
-        concat:
-          - "Hello, "
-          - get: username
-          - "!"
-      category:
-        if:
-          equals:
-            left:
-              get: age
-            right: 25
-        then: "Young Adult"
-        else: "Other"
+  logic:
+    let:
+      user:
+        get: username
+      user_age:
+        get: age
+    in:
+      set:
+        greeting:
+          concat:
+            - "Hello, "
+            - get: username
+            - "!"
+        category:
+          if:
+            equals:
+              left:
+                get: age
+              right: 25
+          then: "Young Adult"
+          else: "Other"

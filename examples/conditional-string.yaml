@@ -1,44 +1,46 @@
 # Conditional String Processing Example
 # Combines boolean and string operations using let/in bindings
 
-program:
+module:
   name: "Conditional String Processing"
-  description: "Demonstrate combining boolean and string operations"
+  description: "Module demonstrating combining boolean and string operations"
 
-input:
-  username:
-    type: string
-    default: "alice"
-  expected:
-    type: string
-    default: "alice"
+main:
+  description: "Checks if username matches expected value and processes accordingly"
+  input:
+    username:
+      type: string
+      default: "alice"
+    expected:
+      type: string
+      default: "alice"
 
-logic:
-  let:
-    is_match:
-      equals:
-        left:
-          get: username
-        right:
-          get: expected
-    result:
-      if:
-        get: is_match
-      then:
-        let:
-          greeting:
+  logic:
+    let:
+      is_match:
+        equals:
+          left:
+            get: username
+          right:
+            get: expected
+      result:
+        if:
+          get: is_match
+        then:
+          let:
+            greeting:
+              concat:
+                - "Welcome, "
+                - get: username
+                - "!"
+            upper_username:
+              uppercase:
+                get: username
+          in:
             concat:
-              - "Welcome, "
-              - get: username
-              - "!"
-          upper_username:
-            uppercase:
-              get: username
-        in:
-          concat:
-            - get: greeting
-            - "\n"
-            - get: upper_username
-      else: "Unknown user"
-  in:
-    get: result
+              - get: greeting
+              - "\n"
+              - get: upper_username
+        else: "Unknown user"
+    in:
+      get: result
