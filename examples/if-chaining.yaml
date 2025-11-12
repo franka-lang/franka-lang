@@ -1,42 +1,44 @@
 # If-Then Chaining Example
 # Demonstrates chaining multiple if-then conditions with a final else
 
-program:
+module:
   name: "If-Then Chaining"
-  description: "Demonstrate chaining conditional logic"
+  description: "Module demonstrating chaining conditional logic"
 
-input:
-  score:
-    type: number
-    default: 85
+main:
+  description: "Chains multiple if-then conditions with a final else"
+  input:
+    score:
+      type: number
+      default: 85
 
-logic:
-  let:
-    grade:
-      - if:
-          equals:
-            left:
-              get: score
-            right: 100
-        then: "A+ Perfect Score!"
-      - if:
-          equals:
-            left:
-              get: score
-            right: 90
-        then: "A Excellent!"
-      - if:
-          equals:
-            left:
-              get: score
-            right: 85
-        then: "B+ Great Job!"
-      - if:
-          equals:
-            left:
-              get: score
-            right: 80
-        then: "B Good Work!"
-      - else: "Keep Trying!"
-  in:
-    get: grade
+  logic:
+    let:
+      grade:
+        - if:
+            equals:
+              left:
+                get: score
+              right: 100
+          then: "A+ Perfect Score!"
+        - if:
+            equals:
+              left:
+                get: score
+              right: 90
+          then: "A Excellent!"
+        - if:
+            equals:
+              left:
+                get: score
+              right: 85
+          then: "B+ Great Job!"
+        - if:
+            equals:
+              left:
+                get: score
+              right: 80
+          then: "B Good Work!"
+        - else: "Keep Trying!"
+    in:
+      get: grade

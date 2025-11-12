@@ -6,8 +6,11 @@ import { FrankaInterpreter } from '../shared/interpreter';
 import { SpecRunner } from '../shared/spec-runner';
 import * as fs from 'fs';
 
-function runFile(filePath: string) {
+function runFile(filePath: string, functionName?: string) {
   console.log(`Running Franka program: ${filePath}`);
+  if (functionName) {
+    console.log(`Function: ${functionName}`);
+  }
 
   if (!fs.existsSync(filePath)) {
     console.error(`Error: File not found: ${filePath}`);
@@ -16,7 +19,7 @@ function runFile(filePath: string) {
 
   try {
     const interpreter = new FrankaInterpreter();
-    const result = interpreter.executeFile(filePath);
+    const result = interpreter.executeFile(filePath, functionName);
 
     console.log('\nProgram result:');
     console.log('---------------');
@@ -29,8 +32,11 @@ function runFile(filePath: string) {
   }
 }
 
-function checkFile(filePath: string) {
+function checkFile(filePath: string, functionName?: string) {
   console.log(`Checking Franka program: ${filePath}`);
+  if (functionName) {
+    console.log(`Function: ${functionName}`);
+  }
 
   if (!fs.existsSync(filePath)) {
     console.error(`Error: File not found: ${filePath}`);
@@ -41,23 +47,66 @@ function checkFile(filePath: string) {
 
   try {
     const interpreter = new FrankaInterpreter();
-    const program = interpreter.loadProgram(filePath);
-
-    console.log('✓ Syntax is valid');
-    console.log(`✓ Program name: ${program.program.name}`);
-    if (program.program.description) {
-      console.log(`✓ Description: ${program.program.description}`);
-    }
-    console.log(`✓ Logic: ${program.logic ? 'present' : 'missing'}`);
-    if (program.input) {
-      console.log(`✓ Inputs: ${Object.keys(program.input).length}`);
-    }
-    if (program.output) {
-      // Check if it's a single unnamed output or multiple named outputs
-      if ('type' in program.output) {
-        console.log(`✓ Output: 1 (type: ${program.output.type})`);
+    
+    // Check if it's a module or program
+    if (interpreter.isModuleFile(filePath)) {
+      const module = interpreter.loadModule(filePath);
+      console.log('✓ Syntax is valid (Module format)');
+      console.log(`✓ Module name: ${module.module.name}`);
+      if (module.module.description) {
+        console.log(`✓ Description: ${module.module.description}`);
+      }
+      
+      // List all functions in the module
+      const functionNames = Object.keys(module).filter(key => key !== 'module');
+      console.log(`✓ Functions: ${functionNames.length} (${functionNames.join(', ')})`);
+      
+      // If a specific function was requested, check it
+      if (functionName) {
+        const func = interpreter.getFunctionFromModule(module, functionName);
+        console.log(`✓ Checking function: ${functionName}`);
+        if (func.description) {
+          console.log(`✓ Function description: ${func.description}`);
+        }
+        console.log(`✓ Logic: ${func.logic ? 'present' : 'missing'}`);
+        if (func.input) {
+          console.log(`✓ Inputs: ${Object.keys(func.input).length}`);
+        }
+        if (func.output) {
+          if ('type' in func.output) {
+            console.log(`✓ Output: 1 (type: ${func.output.type})`);
+          } else {
+            console.log(`✓ Outputs: ${Object.keys(func.output).length}`);
+          }
+        }
       } else {
-        console.log(`✓ Outputs: ${Object.keys(program.output).length}`);
+        // Check all functions
+        for (const fname of functionNames) {
+          const func = module[fname];
+          if (func && typeof func === 'object' && 'logic' in func) {
+            console.log(`  - ${fname}: ${(func as { description?: string }).description || 'No description'}`);
+          }
+        }
+      }
+    } else {
+      // Legacy program format
+      const program = interpreter.loadProgram(filePath);
+      console.log('✓ Syntax is valid (Legacy program format)');
+      console.log(`✓ Program name: ${program.program.name}`);
+      if (program.program.description) {
+        console.log(`✓ Description: ${program.program.description}`);
+      }
+      console.log(`✓ Logic: ${program.logic ? 'present' : 'missing'}`);
+      if (program.input) {
+        console.log(`✓ Inputs: ${Object.keys(program.input).length}`);
+      }
+      if (program.output) {
+        // Check if it's a single unnamed output or multiple named outputs
+        if ('type' in program.output) {
+          console.log(`✓ Output: 1 (type: ${program.output.type})`);
+        } else {
+          console.log(`✓ Outputs: ${Object.keys(program.output).length}`);
+        }
       }
     }
   } catch (error) {
@@ -75,7 +124,7 @@ function checkFile(filePath: string) {
       console.log('\n--- Running Tests ---');
       console.log(`Found spec file: ${specPath}`);
 
-      const results = specRunner.runAllTests(filePath, specPath);
+      const results = specRunner.runAllTests(filePath, specPath, functionName);
 
       let passedCount = 0;
       let failedCount = 0;
@@ -139,16 +188,18 @@ function main() {
     .command('run')
     .description('Execute a Franka program')
     .argument('<file>', 'Path to the Franka program file')
-    .action((file: string) => {
-      runFile(file);
+    .option('-f, --function <name>', 'Function name to execute (for module files)')
+    .action((file: string, options: { function?: string }) => {
+      runFile(file, options.function);
     });
 
   program
     .command('check')
     .description('Check syntax of a Franka program')
     .argument('<file>', 'Path to the Franka program file')
-    .action((file: string) => {
-      checkFile(file);
+    .option('-f, --function <name>', 'Function name to check (for module files)')
+    .action((file: string, options: { function?: string }) => {
+      checkFile(file, options.function);
     });
 
   program

@@ -1,8 +1,8 @@
-# Hello World Example
-# A simple Franka module that returns a greeting
+# Hello World Example - Module Format
+# A simple Franka module with a single function
 
 module:
-  name: "Hello World"
+  name: "Hello Module"
   description: "A simple greeting module"
 
 main:

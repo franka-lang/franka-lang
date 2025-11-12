@@ -1,28 +1,30 @@
 # Output Section Example - Single Unnamed Output
-# Demonstrates a program with a single output declaration
+# Demonstrates a function with a single output declaration
 
-program:
+module:
   name: "Single Output"
-  description: "Program with a single unnamed output"
+  description: "Module with a single unnamed output"
 
-input:
-  greeting:
+main:
+  description: "Function with a single unnamed output"
+  input:
+    greeting:
+      type: string
+      default: "Hello"
+    name:
+      type: string
+      default: "World"
+
+  output:
     type: string
-    default: "Hello"
-  name:
-    type: string
-    default: "World"
 
-output:
-  type: string
-
-logic:
-  let:
-    message:
-      concat:
-        - get: greeting
-        - ", "
-        - get: name
-        - "!"
-  in:
-    get: message
+  logic:
+    let:
+      message:
+        concat:
+          - get: greeting
+          - ", "
+          - get: name
+          - "!"
+    in:
+      get: message

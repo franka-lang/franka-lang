@@ -1,36 +1,38 @@
 # String Operations Example
 # Demonstrates string manipulation operations using let/in bindings
 
-program:
+module:
   name: "String Operations"
-  description: "Demonstrate string concatenation and transformation"
+  description: "Module demonstrating string concatenation and transformation"
 
-input:
-  greeting:
-    type: string
-    default: "Hello"
-  name:
-    type: string
-    default: "World"
+main:
+  description: "Demonstrates string concatenation, uppercase, and lowercase operations"
+  input:
+    greeting:
+      type: string
+      default: "Hello"
+    name:
+      type: string
+      default: "World"
 
-logic:
-  let:
-    message:
+  logic:
+    let:
+      message:
+        concat:
+          - get: greeting
+          - ", "
+          - get: name
+          - "!"
+      upper_message:
+        uppercase:
+          get: message
+      lower_message:
+        lowercase:
+          get: message
+    in:
       concat:
-        - get: greeting
-        - ", "
-        - get: name
-        - "!"
-    upper_message:
-      uppercase:
-        get: message
-    lower_message:
-      lowercase:
-        get: message
-  in:
-    concat:
-      - get: message
-      - "\n"
-      - get: upper_message
-      - "\n"
-      - get: lower_message
+        - get: message
+        - "\n"
+        - get: upper_message
+        - "\n"
+        - get: lower_message
