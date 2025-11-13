@@ -1,15 +1,17 @@
-tests:
-  - description: "Default - matching usernames"
-    expectedOutput: "Welcome, alice!\nALICE"
+functions:
+  main:
+    tests:
+      - description: "Default - matching usernames"
+        expectedOutput: "Welcome, alice!\nALICE"
 
-  - description: "Custom matching usernames"
-    input:
-      username: "bob"
-      expected: "bob"
-    expectedOutput: "Welcome, bob!\nBOB"
+      - description: "Custom matching usernames"
+        input:
+          username: "bob"
+          expected: "bob"
+        expectedOutput: "Welcome, bob!\nBOB"
 
-  - description: "Non-matching usernames"
-    input:
-      username: "charlie"
-      expected: "alice"
-    expectedOutput: "Unknown user"
+      - description: "Non-matching usernames"
+        input:
+          username: "charlie"
+          expected: "alice"
+        expectedOutput: "Unknown user"
