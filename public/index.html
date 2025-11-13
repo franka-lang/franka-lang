@@ -617,7 +617,16 @@
 
                     // Handle 'get' operation
                     if (key === 'get') {
-                        return `<span class="keyword">get</span> <span class="variable">${escapeHtml(value)}</span>`;
+                        let html = '<div class="tree-node">';
+                        html += '<span class="keyword">get</span>';
+                        html += '</div>';
+                        html += '<div class="nested-structure">';
+                        html += '<div class="tree-line">';
+                        html += '<span class="tree-connector">└─</span>';
+                        html += `<span class="variable">${escapeHtml(value)}</span>`;
+                        html += '</div>';
+                        html += '</div>';
+                        return html;
                     }
 
                     // Handle 'let/in' structure
@@ -627,7 +636,9 @@
                         Object.entries(value).forEach(([bindName, bindValue], index, arr) => {
                             html += '<div class="tree-line">';
                             html += `<span class="tree-connector">${index === arr.length - 1 ? '└─' : '├─'}</span>`;
-                            html += `<span class="variable">${escapeHtml(bindName)}</span> = `;
+                            html += `<span class="variable">${escapeHtml(bindName)}:</span>`;
+                            html += '</div>';
+                            html += '<div class="nested-structure">';
                             html += renderExpressionTree(bindValue, indent + 1);
                             html += '</div>';
                         });
@@ -647,7 +658,9 @@
                     if (key === 'if') {
                         let html = '<div class="tree-node">';
                         html += '<span class="tree-icon">🔀</span>';
-                        html += '<span class="keyword">if</span> ';
+                        html += '<span class="keyword">if:</span>';
+                        html += '</div>';
+                        html += '<div class="nested-structure">';
                         html += renderExpressionTree(value, indent + 1);
                         html += '</div>';
                         return html;
@@ -678,10 +691,16 @@
                     }
 
                     // Handle operations with single arguments
-                    if (['uppercase', 'lowercase', 'not'].includes(key)) {
-                        let html = '<span class="operation">' + escapeHtml(key) + '</span>(';
-                        html += renderExpressionTree(value, indent);
-                        html += ')';
+                    if (['uppercase', 'lowercase', 'not', 'length'].includes(key)) {
+                        let html = '<div class="tree-node">';
+                        html += '<span class="operation">' + escapeHtml(key) + '</span>';
+                        html += '</div>';
+                        html += '<div class="nested-structure">';
+                        html += '<div class="tree-line">';
+                        html += '<span class="tree-connector">└─</span>';
+                        html += renderExpressionTree(value, indent + 1);
+                        html += '</div>';
+                        html += '</div>';
                         return html;
                     }
                 }
@@ -697,12 +716,16 @@
                         html += '<div class="nested-structure">';
                         html += '<div class="tree-line">';
                         html += '<span class="tree-connector">├─</span>';
-                        html += '<span class="tree-label">left:</span> ';
+                        html += '<span class="tree-label">left:</span>';
+                        html += '</div>';
+                        html += '<div class="nested-structure">';
                         html += renderExpressionTree(expr.left, indent + 1);
                         html += '</div>';
                         html += '<div class="tree-line">';
                         html += '<span class="tree-connector">└─</span>';
-                        html += '<span class="tree-label">right:</span> ';
+                        html += '<span class="tree-label">right:</span>';
+                        html += '</div>';
+                        html += '<div class="nested-structure">';
                         html += renderExpressionTree(expr.right, indent + 1);
                         html += '</div>';
                         html += '</div>';
@@ -732,7 +755,9 @@
                 keys.forEach((key, index) => {
                     html += '<div class="tree-line">';
                     html += `<span class="tree-connector">${index === keys.length - 1 ? '└─' : '├─'}</span>`;
-                    html += `<span class="tree-label">${escapeHtml(key)}:</span> `;
+                    html += `<span class="tree-label">${escapeHtml(key)}:</span>`;
+                    html += '</div>';
+                    html += '<div class="nested-structure">';
                     html += renderExpressionTree(expr[key], indent + 1);
                     html += '</div>';
                 });
