@@ -399,7 +399,7 @@ functions:
       expect(results[1].passed).toBe(true);
     });
 
-    it('should throw error if requested function not in spec (new format)', () => {
+    it('should throw error if requested function not in spec', () => {
       const modulePath = path.join(tmpDir, 'module3.yaml');
       const specPath = path.join(tmpDir, 'module3.spec.yaml');
 
@@ -407,8 +407,9 @@ functions:
 module:
   name: "Test Module"
 
-greet:
-  logic: "Hello"
+functions:
+  greet:
+    logic: "Hello"
 `;
 
       const specContent = `
@@ -426,7 +427,7 @@ functions:
       );
     });
 
-    it('should handle missing function in module gracefully (new format)', () => {
+    it('should handle missing function in module gracefully', () => {
       const modulePath = path.join(tmpDir, 'module4.yaml');
       const specPath = path.join(tmpDir, 'module4.spec.yaml');
 
@@ -434,8 +435,9 @@ functions:
 module:
   name: "Test Module"
 
-greet:
-  logic: "Hello"
+functions:
+  greet:
+    logic: "Hello"
 `;
 
       const specContent = `

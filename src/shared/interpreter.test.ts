@@ -1208,26 +1208,6 @@ describe('FrankaInterpreter', () => {
       expect(func.logic).toBe('Helper logic');
     });
 
-    it('should still support old format without functions section', () => {
-      const module = {
-        module: {
-          name: 'Test Module',
-        },
-        main: {
-          description: 'Main function',
-          logic: 'Hello from old format!',
-        },
-        helper: {
-          description: 'Helper function',
-          logic: 'Helper output',
-        },
-      };
-
-      const func = interpreter.getFunctionFromModule(module);
-      expect(func).toBeDefined();
-      expect(func.logic).toBe('Hello from old format!');
-    });
-
     it('should execute module with functions section', () => {
       const module = {
         module: {
@@ -1255,16 +1235,16 @@ describe('FrankaInterpreter', () => {
       expect(result).toBe('Hello, World!');
     });
 
-    it('should throw error if functions section is invalid', () => {
+    it('should throw error if module has no functions', () => {
       const module = {
         module: {
           name: 'Test Module',
         },
-        functions: 'invalid',
-      } as unknown as FrankaModule;
+        functions: {},
+      } as FrankaModule;
 
       expect(() => interpreter.getFunctionFromModule(module)).toThrow(
-        'Module has invalid "functions" section'
+        'Module has no functions defined'
       );
     });
   });

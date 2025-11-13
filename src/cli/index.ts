@@ -48,66 +48,42 @@ function checkFile(filePath: string, functionName?: string) {
   try {
     const interpreter = new FrankaInterpreter();
 
-    // Check if it's a module or program
-    if (interpreter.isModuleFile(filePath)) {
-      const module = interpreter.loadModule(filePath);
-      console.log('✓ Syntax is valid (Module format)');
-      console.log(`✓ Module name: ${module.module.name}`);
-      if (module.module.description) {
-        console.log(`✓ Description: ${module.module.description}`);
+    // Load module
+    const module = interpreter.loadModule(filePath);
+    console.log('✓ Syntax is valid (Module format)');
+    console.log(`✓ Module name: ${module.module.name}`);
+    if (module.module.description) {
+      console.log(`✓ Description: ${module.module.description}`);
+    }
+
+    // List all functions in the module
+    const functionNames = Object.keys(module.functions);
+    console.log(`✓ Functions: ${functionNames.length} (${functionNames.join(', ')})`);
+
+    // If a specific function was requested, check it
+    if (functionName) {
+      const func = interpreter.getFunctionFromModule(module, functionName);
+      console.log(`✓ Checking function: ${functionName}`);
+      if (func.description) {
+        console.log(`✓ Function description: ${func.description}`);
       }
-
-      // List all functions in the module
-      const functionNames = Object.keys(module).filter((key) => key !== 'module');
-      console.log(`✓ Functions: ${functionNames.length} (${functionNames.join(', ')})`);
-
-      // If a specific function was requested, check it
-      if (functionName) {
-        const func = interpreter.getFunctionFromModule(module, functionName);
-        console.log(`✓ Checking function: ${functionName}`);
-        if (func.description) {
-          console.log(`✓ Function description: ${func.description}`);
-        }
-        console.log(`✓ Logic: ${func.logic ? 'present' : 'missing'}`);
-        if (func.input) {
-          console.log(`✓ Inputs: ${Object.keys(func.input).length}`);
-        }
-        if (func.output) {
-          if ('type' in func.output) {
-            console.log(`✓ Output: 1 (type: ${func.output.type})`);
-          } else {
-            console.log(`✓ Outputs: ${Object.keys(func.output).length}`);
-          }
-        }
-      } else {
-        // Check all functions
-        for (const fname of functionNames) {
-          const func = module[fname];
-          if (func && typeof func === 'object' && 'logic' in func) {
-            console.log(
-              `  - ${fname}: ${(func as { description?: string }).description || 'No description'}`
-            );
-          }
+      console.log(`✓ Logic: ${func.logic ? 'present' : 'missing'}`);
+      if (func.input) {
+        console.log(`✓ Inputs: ${Object.keys(func.input).length}`);
+      }
+      if (func.output) {
+        if ('type' in func.output) {
+          console.log(`✓ Output: 1 (type: ${func.output.type})`);
+        } else {
+          console.log(`✓ Outputs: ${Object.keys(func.output).length}`);
         }
       }
     } else {
-      // Legacy program format
-      const program = interpreter.loadProgram(filePath);
-      console.log('✓ Syntax is valid (Legacy program format)');
-      console.log(`✓ Program name: ${program.program.name}`);
-      if (program.program.description) {
-        console.log(`✓ Description: ${program.program.description}`);
-      }
-      console.log(`✓ Logic: ${program.logic ? 'present' : 'missing'}`);
-      if (program.input) {
-        console.log(`✓ Inputs: ${Object.keys(program.input).length}`);
-      }
-      if (program.output) {
-        // Check if it's a single unnamed output or multiple named outputs
-        if ('type' in program.output) {
-          console.log(`✓ Output: 1 (type: ${program.output.type})`);
-        } else {
-          console.log(`✓ Outputs: ${Object.keys(program.output).length}`);
+      // Check all functions
+      for (const fname of functionNames) {
+        const func = module.functions[fname];
+        if (func && typeof func === 'object' && 'logic' in func) {
+          console.log(`  - ${fname}: ${func.description || 'No description'}`);
         }
       }
     }

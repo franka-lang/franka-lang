@@ -28,20 +28,13 @@ export interface FrankaFunction {
   logic: FrankaLogic;
 }
 
-// Module structure (supports both old and new formats)
+// Module structure
 export interface FrankaModule {
   module: {
     name: string;
     description?: string;
   };
-  // New format: functions under 'functions' key
-  functions?: Record<string, FrankaFunction>;
-  // Old format: functions at root level (index signature for backward compatibility)
-  [functionName: string]:
-    | FrankaFunction
-    | { name: string; description?: string }
-    | Record<string, FrankaFunction>
-    | undefined;
+  functions: Record<string, FrankaFunction>;
 }
 
 // Legacy program structure (for backward compatibility)
@@ -66,55 +59,38 @@ export class FrankaInterpreter {
   private outputs: Record<string, FrankaValue> = {};
 
   /**
-   * Load a program from file. Supports both legacy program format and new module format.
-   * For modules, specify functionName to select which function to execute.
-   */
-  loadProgram(filePath: string): FrankaProgram {
-    const fileContents = fs.readFileSync(filePath, 'utf8');
-    return yaml.load(fileContents, { schema: yaml.CORE_SCHEMA }) as FrankaProgram;
-  }
-
-  /**
    * Load a module from file
    */
   loadModule(filePath: string): FrankaModule {
     const fileContents = fs.readFileSync(filePath, 'utf8');
-    return yaml.load(fileContents, { schema: yaml.CORE_SCHEMA }) as FrankaModule;
-  }
-
-  /**
-   * Check if a file contains a module (new format) or program (legacy format)
-   */
-  isModuleFile(filePath: string): boolean {
-    const fileContents = fs.readFileSync(filePath, 'utf8');
-    const data = yaml.load(fileContents, { schema: yaml.CORE_SCHEMA }) as Record<string, unknown>;
-    return 'module' in data;
+    const module = yaml.load(fileContents, { schema: yaml.CORE_SCHEMA }) as FrankaModule;
+    
+    // Validate module structure
+    if (!module || typeof module !== 'object') {
+      throw new Error('Invalid module file: must be a YAML object');
+    }
+    
+    if (!('module' in module)) {
+      throw new Error('Invalid module file: must contain "module" section');
+    }
+    
+    if (!('functions' in module) || !module.functions) {
+      throw new Error('Invalid module file: must contain "functions" section');
+    }
+    
+    if (typeof module.functions !== 'object') {
+      throw new Error('Invalid module file: "functions" must be an object');
+    }
+    
+    return module;
   }
 
   /**
    * Get a function from a module by name. If no name is provided, returns the first function found.
-   * Supports both old format (functions at root) and new format (functions under 'functions' key).
    */
   getFunctionFromModule(module: FrankaModule, functionName?: string): FrankaFunction {
-    // Check if module uses new format with 'functions' key
-    const hasNewFormat = 'functions' in module;
-
-    let functionsSource: Record<string, unknown>;
-    let functionKeys: string[];
-
-    if (hasNewFormat) {
-      // New format: functions are under 'functions' key
-      const functions = module.functions as Record<string, unknown>;
-      if (!functions || typeof functions !== 'object') {
-        throw new Error('Module has invalid "functions" section');
-      }
-      functionsSource = functions;
-      functionKeys = Object.keys(functions);
-    } else {
-      // Old format: functions are at root level (except 'module' key)
-      functionsSource = module;
-      functionKeys = Object.keys(module).filter((key) => key !== 'module');
-    }
+    const functions = module.functions;
+    const functionKeys = Object.keys(functions);
 
     if (functionKeys.length === 0) {
       throw new Error('Module has no functions defined');
@@ -123,13 +99,13 @@ export class FrankaInterpreter {
     // If no function name specified, use the first one
     const targetFunction = functionName || functionKeys[0];
 
-    if (!(targetFunction in functionsSource)) {
+    if (!(targetFunction in functions)) {
       throw new Error(
         `Function "${targetFunction}" not found in module. Available functions: ${functionKeys.join(', ')}`
       );
     }
 
-    const func = functionsSource[targetFunction];
+    const func = functions[targetFunction];
 
     // Validate that it's a function object
     if (!func || typeof func !== 'object' || !('logic' in func)) {
@@ -140,7 +116,7 @@ export class FrankaInterpreter {
   }
 
   /**
-   * Convert a module function to program format (for backward compatibility with execute)
+   * Convert a module function to program format (for internal use with execute)
    */
   functionToProgram(
     module: FrankaModule,
@@ -222,23 +198,14 @@ export class FrankaInterpreter {
   }
 
   /**
-   * Execute a file that can be either a program (legacy) or module (new format).
-   * For modules, specify functionName to select which function to execute.
+   * Execute a module file. Specify functionName to select which function to execute.
    */
   executeFile(filePath: string, functionName?: string): FrankaValue | Record<string, FrankaValue> {
-    if (this.isModuleFile(filePath)) {
-      const module = this.loadModule(filePath);
-      const func = this.getFunctionFromModule(module, functionName);
-      const program = this.functionToProgram(
-        module,
-        func,
-        functionName || Object.keys(module).filter((k) => k !== 'module')[0]
-      );
-      return this.execute(program);
-    } else {
-      const program = this.loadProgram(filePath);
-      return this.execute(program);
-    }
+    const module = this.loadModule(filePath);
+    const func = this.getFunctionFromModule(module, functionName);
+    const targetFunctionName = functionName || Object.keys(module.functions)[0];
+    const program = this.functionToProgram(module, func, targetFunctionName);
+    return this.execute(program);
   }
 
   private evaluate(logic: FrankaLogic): FrankaValue {

@@ -156,16 +156,11 @@ export class SpecRunner {
   }
 
   /**
-   * Run all tests in a spec file for a program
+   * Run all tests in a spec file for a module
    */
   runAllTests(programPath: string, specPath: string, functionName?: string): TestResult[] {
     const interpreter = new FrankaInterpreter();
     const spec = this.loadSpec(specPath);
-
-    // For non-module files, error
-    if (!interpreter.isModuleFile(programPath)) {
-      throw new Error('Spec file requires a module file');
-    }
 
     const module = interpreter.loadModule(programPath);
 
