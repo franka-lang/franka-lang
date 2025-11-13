@@ -242,20 +242,26 @@ export class FrankaInterpreter {
 
     // Check if this is a flat if/then/else structure
     if (keys.includes('if') && (keys.includes('then') || keys.includes('else'))) {
-      return this.executeFlatIf(logic);
+      return this.executeIf(logic);
     }
 
     // Check if this is a flat let/in structure
     if (keys.includes('let') && keys.includes('in')) {
-      return this.executeFlatLet(logic);
+      return this.executeLet(logic);
+    }
+
+    // Check for malformed let or if structures
+    if (keys.includes('let')) {
+      throw new Error('Let structure requires "in" key');
+    }
+    if (keys.includes('if')) {
+      throw new Error('If structure must include "then" or "else" key');
     }
 
     const operationName = keys[0];
     const operationArgs = logic[operationName];
 
     switch (operationName) {
-      case 'let':
-        return this.executeLet(operationArgs);
       case 'get':
         return this.executeGet(operationArgs);
       case 'set':
@@ -278,57 +284,18 @@ export class FrankaInterpreter {
         return this.executeNot(operationArgs);
       case 'equals':
         return this.executeEquals(operationArgs);
-      case 'if':
-        return this.executeIf(operationArgs);
       default:
         throw new Error(`Unknown operation: ${operationName}`);
     }
   }
 
-  private executeLet(args: unknown): FrankaValue {
-    if (!args || typeof args !== 'object') {
-      throw new Error('let operation requires bindings and an "in" logic');
-    }
-
-    const argsObj = args as Record<string, unknown>;
-
-    // Save current variable scope
-    const savedVariables = { ...this.variables };
-
-    // Process bindings - each key is a variable name, each value is the value to bind
-    // The "in" key contains the logic to evaluate with these bindings
-    const inLogic = argsObj.in;
-    if (!inLogic) {
-      throw new Error('let operation requires an "in" logic');
-    }
-
-    // Add bindings sequentially so later bindings can reference earlier ones
-    for (const [key, value] of Object.entries(argsObj)) {
-      if (key !== 'in') {
-        this.variables[key] = this.evaluate(value as FrankaLogic);
-      }
-    }
-
-    // Evaluate the "in" logic with the new bindings
-    const result = this.evaluate(inLogic as FrankaLogic);
-
-    // Restore previous variable scope by clearing and repopulating
-    // Don't replace the object to avoid breaking outer scopes
-    for (const key of Object.keys(this.variables)) {
-      delete this.variables[key];
-    }
-    Object.assign(this.variables, savedVariables);
-
-    return result;
-  }
-
-  private executeFlatLet(expr: Record<string, unknown>): FrankaValue {
-    // Handle flat let/in structure where let and in are at the same indentation level
+  private executeLet(expr: Record<string, unknown>): FrankaValue {
+    // Handle let/in structure where let and in are at the same indentation level
     if (!('let' in expr)) {
-      throw new Error('Flat let structure requires "let" key');
+      throw new Error('Let structure requires "let" key');
     }
     if (!('in' in expr)) {
-      throw new Error('Flat let structure requires "in" key');
+      throw new Error('Let structure requires "in" key');
     }
 
     const letBindings = expr.let;
@@ -488,33 +455,10 @@ export class FrankaInterpreter {
     return left === right;
   }
 
-  private executeIf(args: unknown): FrankaValue {
-    if (!args || typeof args !== 'object' || !('condition' in args)) {
-      throw new Error('if operation requires "condition" property');
-    }
-    const argsObj = args as {
-      condition: FrankaLogic;
-      then?: FrankaLogic;
-      else?: FrankaLogic;
-    };
-    const condition = this.evaluate(argsObj.condition);
-
-    if (Boolean(condition)) {
-      if (argsObj.then !== undefined) {
-        return this.evaluate(argsObj.then);
-      }
-    } else {
-      if (argsObj.else !== undefined) {
-        return this.evaluate(argsObj.else);
-      }
-    }
-    return null;
-  }
-
-  private executeFlatIf(expr: Record<string, unknown>): FrankaValue {
-    // Handle flat if/then/else structure where if, then, else are at the same level
+  private executeIf(expr: Record<string, unknown>): FrankaValue {
+    // Handle if/then/else structure where if, then, else are at the same level
     if (!('if' in expr)) {
-      throw new Error('Flat if structure requires "if" key');
+      throw new Error('If structure requires "if" key');
     }
 
     const condition = this.evaluate(expr.if as FrankaLogic);

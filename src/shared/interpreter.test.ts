@@ -58,8 +58,8 @@ describe('FrankaInterpreter', () => {
         logic: {
           let: {
             x: 5,
-            in: { get: 'x' },
           },
+          in: { get: 'x' },
         },
       };
 
@@ -74,34 +74,13 @@ describe('FrankaInterpreter', () => {
           let: {
             x: 5,
             y: { concat: ['Value is ', { get: 'x' }] },
-            in: { get: 'y' },
           },
+          in: { get: 'y' },
         },
       };
 
       const result = interpreter.execute(program);
       expect(result).toBe('Value is 5');
-    });
-
-    it('should support nested let bindings', () => {
-      const program = {
-        program: { name: 'Test' },
-        logic: {
-          let: {
-            x: 5,
-            result: {
-              let: {
-                y: 10,
-                in: { get: 'y' },
-              },
-            },
-            in: { get: 'result' },
-          },
-        },
-      };
-
-      const result = interpreter.execute(program);
-      expect(result).toBe(10);
     });
 
     it('should support flat let/in syntax', () => {
@@ -286,68 +265,7 @@ describe('FrankaInterpreter', () => {
   });
 
   describe('control flow', () => {
-    // Test legacy nested syntax (should still work)
-    it('should execute nested if-then branch (legacy)', () => {
-      const program = {
-        program: { name: 'Test' },
-        logic: {
-          if: {
-            condition: true,
-            then: 'True branch',
-            else: 'False branch',
-          },
-        },
-      };
-
-      const result = interpreter.execute(program);
-      expect(result).toBe('True branch');
-    });
-
-    it('should execute nested if-else branch (legacy)', () => {
-      const program = {
-        program: { name: 'Test' },
-        logic: {
-          if: {
-            condition: false,
-            then: 'True branch',
-            else: 'False branch',
-          },
-        },
-      };
-
-      const result = interpreter.execute(program);
-      expect(result).toBe('False branch');
-    });
-
-    it('should execute nested if with complex condition (legacy)', () => {
-      const program = {
-        program: { name: 'Test' },
-        input: {
-          username: {
-            type: 'string' as const,
-            default: 'alice',
-          },
-          expected: {
-            type: 'string' as const,
-            default: 'alice',
-          },
-        },
-        logic: {
-          if: {
-            condition: {
-              equals: { left: { get: 'username' }, right: { get: 'expected' } },
-            },
-            then: 'Match',
-            else: 'No match',
-          },
-        },
-      };
-
-      const result = interpreter.execute(program);
-      expect(result).toBe('Match');
-    });
-
-    // Test new flat syntax
+    // Test flat syntax
     it('should execute flat if-then-else (true condition)', () => {
       const program = {
         program: { name: 'Test' },
@@ -534,7 +452,7 @@ describe('FrankaInterpreter', () => {
         },
       };
 
-      expect(() => interpreter.execute(program)).toThrow('let operation requires an "in" logic');
+      expect(() => interpreter.execute(program)).toThrow('Let structure requires "in" key');
     });
   });
 
