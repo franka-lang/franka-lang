@@ -597,7 +597,6 @@
                 expr.forEach((item, index) => {
                     html += '<div class="tree-node">';
                     html += `<span class="tree-connector">${index === expr.length - 1 ? '└─' : '├─'}</span>`;
-                    html += `<span class="tree-label">[${index}]:</span> `;
                     html += renderExpressionTree(item, indent + 1);
                     html += '</div>';
                 });
