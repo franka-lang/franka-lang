@@ -28,20 +28,13 @@ export interface FrankaFunction {
   logic: FrankaLogic;
 }
 
-// Module structure (supports both old and new formats)
+// Module structure
 export interface FrankaModule {
   module: {
     name: string;
     description?: string;
   };
-  // New format: functions under 'functions' key
-  functions?: Record<string, FrankaFunction>;
-  // Old format: functions at root level (index signature for backward compatibility)
-  [functionName: string]:
-    | FrankaFunction
-    | { name: string; description?: string }
-    | Record<string, FrankaFunction>
-    | undefined;
+  functions: Record<string, FrankaFunction>;
 }
 
 // Legacy program structure (for backward compatibility)
@@ -66,55 +59,38 @@ export class FrankaInterpreter {
   private outputs: Record<string, FrankaValue> = {};
 
   /**
-   * Load a program from file. Supports both legacy program format and new module format.
-   * For modules, specify functionName to select which function to execute.
-   */
-  loadProgram(filePath: string): FrankaProgram {
-    const fileContents = fs.readFileSync(filePath, 'utf8');
-    return yaml.load(fileContents, { schema: yaml.CORE_SCHEMA }) as FrankaProgram;
-  }
-
-  /**
    * Load a module from file
    */
   loadModule(filePath: string): FrankaModule {
     const fileContents = fs.readFileSync(filePath, 'utf8');
-    return yaml.load(fileContents, { schema: yaml.CORE_SCHEMA }) as FrankaModule;
-  }
+    const module = yaml.load(fileContents, { schema: yaml.CORE_SCHEMA }) as FrankaModule;
 
-  /**
-   * Check if a file contains a module (new format) or program (legacy format)
-   */
-  isModuleFile(filePath: string): boolean {
-    const fileContents = fs.readFileSync(filePath, 'utf8');
-    const data = yaml.load(fileContents, { schema: yaml.CORE_SCHEMA }) as Record<string, unknown>;
-    return 'module' in data;
+    // Validate module structure
+    if (!module || typeof module !== 'object') {
+      throw new Error('Invalid module file: must be a YAML object');
+    }
+
+    if (!('module' in module)) {
+      throw new Error('Invalid module file: must contain "module" section');
+    }
+
+    if (!('functions' in module) || !module.functions) {
+      throw new Error('Invalid module file: must contain "functions" section');
+    }
+
+    if (typeof module.functions !== 'object') {
+      throw new Error('Invalid module file: "functions" must be an object');
+    }
+
+    return module;
   }
 
   /**
    * Get a function from a module by name. If no name is provided, returns the first function found.
-   * Supports both old format (functions at root) and new format (functions under 'functions' key).
    */
   getFunctionFromModule(module: FrankaModule, functionName?: string): FrankaFunction {
-    // Check if module uses new format with 'functions' key
-    const hasNewFormat = 'functions' in module;
-
-    let functionsSource: Record<string, unknown>;
-    let functionKeys: string[];
-
-    if (hasNewFormat) {
-      // New format: functions are under 'functions' key
-      const functions = module.functions as Record<string, unknown>;
-      if (!functions || typeof functions !== 'object') {
-        throw new Error('Module has invalid "functions" section');
-      }
-      functionsSource = functions;
-      functionKeys = Object.keys(functions);
-    } else {
-      // Old format: functions are at root level (except 'module' key)
-      functionsSource = module;
-      functionKeys = Object.keys(module).filter((key) => key !== 'module');
-    }
+    const functions = module.functions;
+    const functionKeys = Object.keys(functions);
 
     if (functionKeys.length === 0) {
       throw new Error('Module has no functions defined');
@@ -123,13 +99,13 @@ export class FrankaInterpreter {
     // If no function name specified, use the first one
     const targetFunction = functionName || functionKeys[0];
 
-    if (!(targetFunction in functionsSource)) {
+    if (!(targetFunction in functions)) {
       throw new Error(
         `Function "${targetFunction}" not found in module. Available functions: ${functionKeys.join(', ')}`
       );
     }
 
-    const func = functionsSource[targetFunction];
+    const func = functions[targetFunction];
 
     // Validate that it's a function object
     if (!func || typeof func !== 'object' || !('logic' in func)) {
@@ -140,7 +116,7 @@ export class FrankaInterpreter {
   }
 
   /**
-   * Convert a module function to program format (for backward compatibility with execute)
+   * Convert a module function to program format (for internal use with execute)
    */
   functionToProgram(
     module: FrankaModule,
@@ -222,23 +198,14 @@ export class FrankaInterpreter {
   }
 
   /**
-   * Execute a file that can be either a program (legacy) or module (new format).
-   * For modules, specify functionName to select which function to execute.
+   * Execute a module file. Specify functionName to select which function to execute.
    */
   executeFile(filePath: string, functionName?: string): FrankaValue | Record<string, FrankaValue> {
-    if (this.isModuleFile(filePath)) {
-      const module = this.loadModule(filePath);
-      const func = this.getFunctionFromModule(module, functionName);
-      const program = this.functionToProgram(
-        module,
-        func,
-        functionName || Object.keys(module).filter((k) => k !== 'module')[0]
-      );
-      return this.execute(program);
-    } else {
-      const program = this.loadProgram(filePath);
-      return this.execute(program);
-    }
+    const module = this.loadModule(filePath);
+    const func = this.getFunctionFromModule(module, functionName);
+    const targetFunctionName = functionName || Object.keys(module.functions)[0];
+    const program = this.functionToProgram(module, func, targetFunctionName);
+    return this.execute(program);
   }
 
   private evaluate(logic: FrankaLogic): FrankaValue {
@@ -275,20 +242,26 @@ export class FrankaInterpreter {
 
     // Check if this is a flat if/then/else structure
     if (keys.includes('if') && (keys.includes('then') || keys.includes('else'))) {
-      return this.executeFlatIf(logic);
+      return this.executeIf(logic);
     }
 
     // Check if this is a flat let/in structure
     if (keys.includes('let') && keys.includes('in')) {
-      return this.executeFlatLet(logic);
+      return this.executeLet(logic);
+    }
+
+    // Check for malformed let or if structures
+    if (keys.includes('let')) {
+      throw new Error('Let structure requires "in" key');
+    }
+    if (keys.includes('if')) {
+      throw new Error('If structure must include "then" or "else" key');
     }
 
     const operationName = keys[0];
     const operationArgs = logic[operationName];
 
     switch (operationName) {
-      case 'let':
-        return this.executeLet(operationArgs);
       case 'get':
         return this.executeGet(operationArgs);
       case 'set':
@@ -311,57 +284,18 @@ export class FrankaInterpreter {
         return this.executeNot(operationArgs);
       case 'equals':
         return this.executeEquals(operationArgs);
-      case 'if':
-        return this.executeIf(operationArgs);
       default:
         throw new Error(`Unknown operation: ${operationName}`);
     }
   }
 
-  private executeLet(args: unknown): FrankaValue {
-    if (!args || typeof args !== 'object') {
-      throw new Error('let operation requires bindings and an "in" logic');
-    }
-
-    const argsObj = args as Record<string, unknown>;
-
-    // Save current variable scope
-    const savedVariables = { ...this.variables };
-
-    // Process bindings - each key is a variable name, each value is the value to bind
-    // The "in" key contains the logic to evaluate with these bindings
-    const inLogic = argsObj.in;
-    if (!inLogic) {
-      throw new Error('let operation requires an "in" logic');
-    }
-
-    // Add bindings sequentially so later bindings can reference earlier ones
-    for (const [key, value] of Object.entries(argsObj)) {
-      if (key !== 'in') {
-        this.variables[key] = this.evaluate(value as FrankaLogic);
-      }
-    }
-
-    // Evaluate the "in" logic with the new bindings
-    const result = this.evaluate(inLogic as FrankaLogic);
-
-    // Restore previous variable scope by clearing and repopulating
-    // Don't replace the object to avoid breaking outer scopes
-    for (const key of Object.keys(this.variables)) {
-      delete this.variables[key];
-    }
-    Object.assign(this.variables, savedVariables);
-
-    return result;
-  }
-
-  private executeFlatLet(expr: Record<string, unknown>): FrankaValue {
-    // Handle flat let/in structure where let and in are at the same indentation level
+  private executeLet(expr: Record<string, unknown>): FrankaValue {
+    // Handle let/in structure where let and in are at the same indentation level
     if (!('let' in expr)) {
-      throw new Error('Flat let structure requires "let" key');
+      throw new Error('Let structure requires "let" key');
     }
     if (!('in' in expr)) {
-      throw new Error('Flat let structure requires "in" key');
+      throw new Error('Let structure requires "in" key');
     }
 
     const letBindings = expr.let;
@@ -521,33 +455,10 @@ export class FrankaInterpreter {
     return left === right;
   }
 
-  private executeIf(args: unknown): FrankaValue {
-    if (!args || typeof args !== 'object' || !('condition' in args)) {
-      throw new Error('if operation requires "condition" property');
-    }
-    const argsObj = args as {
-      condition: FrankaLogic;
-      then?: FrankaLogic;
-      else?: FrankaLogic;
-    };
-    const condition = this.evaluate(argsObj.condition);
-
-    if (Boolean(condition)) {
-      if (argsObj.then !== undefined) {
-        return this.evaluate(argsObj.then);
-      }
-    } else {
-      if (argsObj.else !== undefined) {
-        return this.evaluate(argsObj.else);
-      }
-    }
-    return null;
-  }
-
-  private executeFlatIf(expr: Record<string, unknown>): FrankaValue {
-    // Handle flat if/then/else structure where if, then, else are at the same level
+  private executeIf(expr: Record<string, unknown>): FrankaValue {
+    // Handle if/then/else structure where if, then, else are at the same level
     if (!('if' in expr)) {
-      throw new Error('Flat if structure requires "if" key');
+      throw new Error('If structure requires "if" key');
     }
 
     const condition = this.evaluate(expr.if as FrankaLogic);

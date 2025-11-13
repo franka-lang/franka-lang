@@ -1,21 +1,23 @@
-tests:
-  - description: "Default inputs"
-    expectedOutput: "Hello, World!\nHELLO, WORLD!\nhello, world!"
+functions:
+  main:
+    tests:
+      - description: "Default inputs"
+        expectedOutput: "Hello, World!\nHELLO, WORLD!\nhello, world!"
 
-  - description: "Custom greeting"
-    input:
-      greeting: "Hi"
-      name: "Franka"
-    expectedOutput: "Hi, Franka!\nHI, FRANKA!\nhi, franka!"
+      - description: "Custom greeting"
+        input:
+          greeting: "Hi"
+          name: "Franka"
+        expectedOutput: "Hi, Franka!\nHI, FRANKA!\nhi, franka!"
 
-  - description: "Empty strings"
-    input:
-      greeting: ""
-      name: ""
-    expectedOutput: ", !\n, !\n, !"
+      - description: "Empty strings"
+        input:
+          greeting: ""
+          name: ""
+        expectedOutput: ", !\n, !\n, !"
 
-  - description: "Single character"
-    input:
-      greeting: "H"
-      name: "F"
-    expectedOutput: "H, F!\nH, F!\nh, f!"
+      - description: "Single character"
+        input:
+          greeting: "H"
+          name: "F"
+        expectedOutput: "H, F!\nH, F!\nh, f!"
