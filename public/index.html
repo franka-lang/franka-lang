@@ -593,14 +593,13 @@
                 if (expr.length === 0) {
                     return '<span class="literal">[]</span>';
                 }
-                let html = '<div class="tree-children">';
+                let html = '';
                 expr.forEach((item, index) => {
                     html += '<div class="tree-node">';
                     html += `<span class="tree-connector">${index === expr.length - 1 ? '└─' : '├─'}</span>`;
                     html += renderExpressionTree(item, indent + 1);
                     html += '</div>';
                 });
-                html += '</div>';
                 return html;
             }
 
