@@ -169,6 +169,94 @@
             font-style: italic;
         }
 
+        .io-container {
+            display: flex;
+            align-items: flex-start;
+            gap: 20px;
+            margin-bottom: 20px;
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            border: 2px solid #3498db;
+        }
+
+        .io-section {
+            flex: 1;
+        }
+
+        .io-section h4 {
+            color: #34495e;
+            font-size: 14px;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+
+        .io-arrow {
+            font-size: 32px;
+            color: #3498db;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            padding-top: 30px;
+        }
+
+        .io-grid {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        .io-grid thead {
+            background-color: #ecf0f1;
+        }
+
+        .io-grid th {
+            text-align: left;
+            padding: 10px;
+            font-weight: 600;
+            color: #2c3e50;
+            border-bottom: 2px solid #bdc3c7;
+        }
+
+        .io-grid td {
+            padding: 10px;
+            border-bottom: 1px solid #ecf0f1;
+        }
+
+        .io-grid tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .io-grid tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        .param-name {
+            color: #2980b9;
+            font-weight: 500;
+            font-family: 'Courier New', monospace;
+        }
+
+        .param-type {
+            color: #27ae60;
+            font-family: 'Courier New', monospace;
+        }
+
+        .param-default {
+            color: #e67e22;
+            font-family: 'Courier New', monospace;
+        }
+
+        .not-declared {
+            color: #95a5a6;
+            font-style: italic;
+            padding: 15px;
+            text-align: center;
+            background: #ecf0f1;
+            border-radius: 6px;
+        }
+
         .function-details {
             background: white;
             border-radius: 6px;
@@ -753,6 +841,68 @@
             container.innerHTML = html;
         }
 
+        function renderInputOutputGrid(input, output) {
+            let html = '<div class="io-container">';
+            
+            // Render Input section
+            html += '<div class="io-section">';
+            html += '<h4>Input Parameters</h4>';
+            if (input) {
+                html += '<table class="io-grid">';
+                html += '<thead><tr><th>Name</th><th>Type</th><th>Default</th></tr></thead>';
+                html += '<tbody>';
+                Object.entries(input).forEach(([paramName, paramDef]) => {
+                    html += '<tr>';
+                    html += `<td class="param-name">${escapeHtml(paramName)}</td>`;
+                    html += `<td class="param-type">${escapeHtml(paramDef.type || '-')}</td>`;
+                    html += `<td class="param-default">${paramDef.default !== undefined ? escapeHtml(String(paramDef.default)) : '-'}</td>`;
+                    html += '</tr>';
+                });
+                html += '</tbody></table>';
+            } else {
+                html += '<div class="not-declared">Not declared</div>';
+            }
+            html += '</div>';
+            
+            // Arrow
+            html += '<div class="io-arrow">→</div>';
+            
+            // Render Output section
+            html += '<div class="io-section">';
+            html += '<h4>Output</h4>';
+            if (output) {
+                // Check if it's a single unnamed output (has 'type' property directly)
+                if (output.type) {
+                    html += '<table class="io-grid">';
+                    html += '<thead><tr><th>Name</th><th>Type</th></tr></thead>';
+                    html += '<tbody>';
+                    html += '<tr>';
+                    html += `<td class="param-name">(return value)</td>`;
+                    html += `<td class="param-type">${escapeHtml(output.type)}</td>`;
+                    html += '</tr>';
+                    html += '</tbody></table>';
+                } else {
+                    // Multiple named outputs
+                    html += '<table class="io-grid">';
+                    html += '<thead><tr><th>Name</th><th>Type</th></tr></thead>';
+                    html += '<tbody>';
+                    Object.entries(output).forEach(([outputName, outputDef]) => {
+                        html += '<tr>';
+                        html += `<td class="param-name">${escapeHtml(outputName)}</td>`;
+                        html += `<td class="param-type">${escapeHtml(outputDef.type || '-')}</td>`;
+                        html += '</tr>';
+                    });
+                    html += '</tbody></table>';
+                }
+            } else {
+                html += '<div class="not-declared">Not declared</div>';
+            }
+            html += '</div>';
+            
+            html += '</div>';
+            return html;
+        }
+
         function renderFunctionCard(name, func, tests) {
             let html = '<div class="function-card">';
             html += '<div class="function-header">';
@@ -763,24 +913,13 @@
                 html += `<div class="function-description">${escapeHtml(func.description)}</div>`;
             }
 
+            // Input/Output at the top
+            html += renderInputOutputGrid(func.input, func.output);
+
             html += '<div class="function-details">';
             html += '<h4>Logic</h4>';
             html += `<div class="expression-tree">${renderExpressionTree(func.logic)}</div>`;
             html += '</div>';
-
-            if (func.input) {
-                html += '<div class="function-details">';
-                html += '<h4>Input Parameters</h4>';
-                html += `<div class="expression-tree">${renderExpressionTree(func.input)}</div>`;
-                html += '</div>';
-            }
-
-            if (func.output) {
-                html += '<div class="function-details">';
-                html += '<h4>Output</h4>';
-                html += `<div class="expression-tree">${renderExpressionTree(func.output)}</div>`;
-                html += '</div>';
-            }
 
             html += '<div class="test-cases">';
             html += `<h4>Test Cases (${tests.length})</h4>`;
