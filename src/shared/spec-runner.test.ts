@@ -22,26 +22,7 @@ describe('SpecRunner', () => {
   });
 
   describe('loadSpec', () => {
-    it('should load a valid spec file (legacy format)', () => {
-      const specPath = path.join(tmpDir, 'test.spec.yaml');
-      const specContent = `
-tests:
-  - description: "Test case 1"
-    input:
-      greeting: "Hi"
-    expectedOutput: "Hi, World!"
-`;
-      fs.writeFileSync(specPath, specContent);
-
-      const spec = runner.loadSpec(specPath);
-      expect(spec.tests).toBeDefined();
-      expect(spec.tests).toHaveLength(1);
-      expect(spec.tests![0].description).toBe('Test case 1');
-      expect(spec.tests![0].input).toEqual({ greeting: 'Hi' });
-      expect(spec.tests![0].expectedOutput).toBe('Hi, World!');
-    });
-
-    it('should load a valid spec file (new format)', () => {
+    it('should load a valid spec file', () => {
       const specPath = path.join(tmpDir, 'test-new.spec.yaml');
       const specContent = `
 functions:
@@ -56,55 +37,25 @@ functions:
 
       const spec = runner.loadSpec(specPath);
       expect(spec.functions).toBeDefined();
-      expect(spec.functions!['myFunction']).toBeDefined();
-      expect(spec.functions!['myFunction'].tests).toHaveLength(1);
-      expect(spec.functions!['myFunction'].tests[0].description).toBe('Test case 1');
-      expect(spec.functions!['myFunction'].tests[0].input).toEqual({ greeting: 'Hi' });
-      expect(spec.functions!['myFunction'].tests[0].expectedOutput).toBe('Hi, World!');
+      expect(spec.functions['myFunction']).toBeDefined();
+      expect(spec.functions['myFunction'].tests).toHaveLength(1);
+      expect(spec.functions['myFunction'].tests[0].description).toBe('Test case 1');
+      expect(spec.functions['myFunction'].tests[0].input).toEqual({ greeting: 'Hi' });
+      expect(spec.functions['myFunction'].tests[0].expectedOutput).toBe('Hi, World!');
     });
 
     it('should throw error for missing spec file', () => {
       expect(() => runner.loadSpec('/nonexistent/file.spec.yaml')).toThrow('Spec file not found');
     });
 
-    it('should throw error for spec without tests or functions', () => {
+    it('should throw error for spec without functions', () => {
       const specPath = path.join(tmpDir, 'invalid.spec.yaml');
       fs.writeFileSync(specPath, 'invalid: true\n');
 
-      expect(() => runner.loadSpec(specPath)).toThrow('must contain either "tests" array');
+      expect(() => runner.loadSpec(specPath)).toThrow('must contain "functions"');
     });
 
-    it('should throw error for spec with both tests and functions', () => {
-      const specPath = path.join(tmpDir, 'invalid-both.spec.yaml');
-      const specContent = `
-tests:
-  - expectedOutput: "test"
-functions:
-  myFunction:
-    tests:
-      - expectedOutput: "test"
-`;
-      fs.writeFileSync(specPath, specContent);
-
-      expect(() => runner.loadSpec(specPath)).toThrow(
-        'cannot contain both "tests" and "functions"'
-      );
-    });
-
-    it('should throw error for test case without expectedOutputs (legacy format)', () => {
-      const specPath = path.join(tmpDir, 'invalid2.spec.yaml');
-      const specContent = `
-tests:
-  - description: "Missing expected outputs"
-    input:
-      greeting: "Hi"
-`;
-      fs.writeFileSync(specPath, specContent);
-
-      expect(() => runner.loadSpec(specPath)).toThrow('must contain "expectedOutput"');
-    });
-
-    it('should throw error for test case without expectedOutputs (new format)', () => {
+    it('should throw error for test case without expectedOutputs', () => {
       const specPath = path.join(tmpDir, 'invalid3.spec.yaml');
       const specContent = `
 functions:
@@ -326,51 +277,7 @@ functions:
   });
 
   describe('runAllTests', () => {
-    it('should run all tests in a spec file (legacy format)', () => {
-      const programPath = path.join(tmpDir, 'program.yaml');
-      const specPath = path.join(tmpDir, 'program.spec.yaml');
-
-      const programContent = `
-program:
-  name: "Echo"
-  description: "Echoes the input"
-
-input:
-  message:
-    type: string
-    default: "Hello"
-
-logic:
-  get: message
-`;
-
-      const specContent = `
-tests:
-  - description: "Test 1"
-    input:
-      message: "Hi"
-    expectedOutput: "Hi"
-  - description: "Test 2"
-    input:
-      message: "World"
-    expectedOutput: "World"
-  - description: "Test 3 - should fail"
-    input:
-      message: "Fail"
-    expectedOutput: "Wrong"
-`;
-
-      fs.writeFileSync(programPath, programContent);
-      fs.writeFileSync(specPath, specContent);
-
-      const results = runner.runAllTests(programPath, specPath);
-      expect(results).toHaveLength(3);
-      expect(results[0].passed).toBe(true);
-      expect(results[1].passed).toBe(true);
-      expect(results[2].passed).toBe(false);
-    });
-
-    it('should run tests for a specific function in a module (new format)', () => {
+    it('should run tests for a specific function in a module', () => {
       const modulePath = path.join(tmpDir, 'module.yaml');
       const specPath = path.join(tmpDir, 'module.spec.yaml');
 
@@ -379,27 +286,28 @@ module:
   name: "Test Module"
   description: "Module with multiple functions"
 
-greet:
-  description: "Returns a greeting"
-  input:
-    name:
-      type: string
-      default: "World"
-  logic:
-    concat:
-      - "Hello, "
-      - get: name
+functions:
+  greet:
+    description: "Returns a greeting"
+    input:
+      name:
+        type: string
+        default: "World"
+    logic:
+      concat:
+        - "Hello, "
+        - get: name
 
-farewell:
-  description: "Returns a farewell"
-  input:
-    name:
-      type: string
-      default: "World"
-  logic:
-    concat:
-      - "Goodbye, "
-      - get: name
+  farewell:
+    description: "Returns a farewell"
+    input:
+      name:
+        type: string
+        default: "World"
+    logic:
+      concat:
+        - "Goodbye, "
+        - get: name
 `;
 
       const specContent = `
@@ -434,7 +342,7 @@ functions:
       expect(greetResults[1].description).toBe('Custom greeting');
     });
 
-    it('should run tests for all functions in a module (new format)', () => {
+    it('should run tests for all functions in a module', () => {
       const modulePath = path.join(tmpDir, 'module2.yaml');
       const specPath = path.join(tmpDir, 'module2.spec.yaml');
 
@@ -443,27 +351,28 @@ module:
   name: "Test Module"
   description: "Module with multiple functions"
 
-greet:
-  description: "Returns a greeting"
-  input:
-    name:
-      type: string
-      default: "World"
-  logic:
-    concat:
-      - "Hello, "
-      - get: name
+functions:
+  greet:
+    description: "Returns a greeting"
+    input:
+      name:
+        type: string
+        default: "World"
+    logic:
+      concat:
+        - "Hello, "
+        - get: name
 
-farewell:
-  description: "Returns a farewell"
-  input:
-    name:
-      type: string
-      default: "World"
-  logic:
-    concat:
-      - "Goodbye, "
-      - get: name
+  farewell:
+    description: "Returns a farewell"
+    input:
+      name:
+        type: string
+        default: "World"
+    logic:
+      concat:
+        - "Goodbye, "
+        - get: name
 `;
 
       const specContent = `
