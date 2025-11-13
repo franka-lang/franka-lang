@@ -6,7 +6,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { loadLanguageSpec } from '../shared/spec-loader';
 import { FrankaInterpreter } from '../shared/interpreter';
-import { SpecRunner } from '../shared/spec-runner';
+import { SpecRunner, TestResult } from '../shared/spec-runner';
 
 const app = express();
 const spec = loadLanguageSpec();
@@ -142,15 +142,35 @@ app.get('/api/module', (req: Request, res: Response) => {
     // Check for corresponding spec file
     const specPath = modulePath.replace(/\.yaml$/, '.spec.yaml');
     let specs = null;
+    let testResults: Record<string, TestResult[]> = {};
     if (fs.existsSync(specPath)) {
       const specRunner = new SpecRunner();
       specs = specRunner.loadSpec(specPath);
+
+      // Run tests for each function
+      for (const [funcName, funcSpec] of Object.entries(specs.functions)) {
+        try {
+          const func = interpreter.getFunctionFromModule(module, funcName);
+          const funcProgram = interpreter.functionToProgram(module, func, funcName);
+          testResults[funcName] = funcSpec.tests.map((testCase) =>
+            specRunner.runTest(funcProgram, testCase)
+          );
+        } catch (error) {
+          // If function doesn't exist or errors, mark all tests as failed
+          testResults[funcName] = funcSpec.tests.map((testCase) => ({
+            passed: false,
+            description: testCase.description,
+            error: error instanceof Error ? error.message : String(error),
+          }));
+        }
+      }
     }
 
     res.json({
       path: relativePath,
       module,
       specs,
+      testResults,
     });
   } catch (error) {
     console.error('Error loading module:', error);
