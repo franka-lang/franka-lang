@@ -1,0 +1,37 @@
+module:
+  name: "Multi-function Module"
+  description: "Example module with multiple functions for testing"
+
+greet:
+  description: "Returns a greeting message"
+  input:
+    name:
+      type: string
+      default: "World"
+  logic:
+    concat:
+      - "Hello, "
+      - get: name
+      - "!"
+
+farewell:
+  description: "Returns a farewell message"
+  input:
+    name:
+      type: string
+      default: "World"
+  logic:
+    concat:
+      - "Goodbye, "
+      - get: name
+      - "!"
+
+shout:
+  description: "Returns message in uppercase"
+  input:
+    message:
+      type: string
+      default: "hello"
+  logic:
+    uppercase:
+      get: message
