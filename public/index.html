@@ -196,25 +196,11 @@
             word-wrap: break-word;
         }
 
-        .verification-section {
-            margin-top: 30px;
-            background: white;
-            border-radius: 8px;
-            padding: 20px;
-            border: 2px solid #3498db;
-        }
-
-        .verification-section h3 {
-            color: #2c3e50;
-            margin-bottom: 20px;
-            font-size: 24px;
-        }
-
         .verification-grid {
             width: 100%;
             border-collapse: collapse;
             font-size: 14px;
-            margin-top: 15px;
+            margin-top: 10px;
         }
 
         .verification-grid th {
@@ -718,17 +704,16 @@
 
             html += '<div class="function-section"><h3>Functions</h3>';
             Object.entries(module.functions).forEach(([funcName, funcDef]) => {
-                html += renderFunctionCard(funcName, funcDef);
+                html += renderFunctionCard(funcName, funcDef, specs, state.moduleData.testResults);
             });
             html += '</div>';
 
-            html += renderVerificationSection(module, specs, state.moduleData.testResults);
             html += '</div>';
 
             container.innerHTML = html;
         }
 
-        function renderFunctionCard(name, func) {
+        function renderFunctionCard(name, func, specs, testResults) {
             let html = '<div class="function-card">';
             html += '<div class="function-header">';
             html += `<div class="function-name">⚙️ ${escapeHtml(name)}</div>`;
@@ -757,54 +742,49 @@
                 html += '</div>';
             }
 
+            // Add verification section for this function
+            html += renderFunctionVerification(name, func, specs, testResults);
+
             html += '</div>';
             return html;
         }
 
-        function renderVerificationSection(module, specs, testResults) {
-            let html = '<div class="verification-section">';
-            html += '<h3>🔍 Verification</h3>';
+        function renderFunctionVerification(funcName, func, specs, testResults) {
+            const tests = specs?.functions?.[funcName]?.tests || [];
+            const results = testResults?.[funcName] || [];
 
-            if (!specs || Object.keys(specs.functions).length === 0) {
-                html += '<div class="no-tests">No test cases defined for this module</div>';
-                html += '</div>';
-                return html;
+            if (tests.length === 0) {
+                return '<div class="function-details"><h4>Verification</h4><div class="no-tests">No test cases defined</div></div>';
             }
 
-            // Collect all input parameter names and output names across all functions
-            const inputParams = new Set();
-            const outputNames = new Set();
+            let html = '<div class="function-details">';
+            html += '<h4>🔍 Verification</h4>';
             
-            Object.entries(module.functions).forEach(([funcName, funcDef]) => {
-                if (funcDef.input) {
-                    Object.keys(funcDef.input).forEach(param => inputParams.add(param));
-                }
-                if (funcDef.output && typeof funcDef.output === 'object') {
-                    Object.keys(funcDef.output).forEach(out => outputNames.add(out));
-                } else {
-                    outputNames.add('output');
-                }
-            });
-
-            const inputParamsList = Array.from(inputParams);
-            const outputNamesList = Array.from(outputNames);
+            // Collect input parameter names and output names for this function
+            const inputParams = func.input ? Object.keys(func.input) : [];
+            const outputNames = [];
+            
+            if (func.output && typeof func.output === 'object' && !Array.isArray(func.output)) {
+                outputNames.push(...Object.keys(func.output));
+            } else {
+                outputNames.push('output');
+            }
 
             // Build the table
             html += '<table class="verification-grid">';
             html += '<thead><tr>';
-            html += '<th>Function</th>';
             html += '<th>Test Description</th>';
             
             // Add columns for each input parameter
-            inputParamsList.forEach(param => {
+            inputParams.forEach(param => {
                 html += `<th>Input: ${escapeHtml(param)}</th>`;
             });
             
             // Add columns for outputs
-            if (outputNamesList.length === 1 && outputNamesList[0] === 'output') {
+            if (outputNames.length === 1 && outputNames[0] === 'output') {
                 html += '<th>Expected Output</th>';
             } else {
-                outputNamesList.forEach(out => {
+                outputNames.forEach(out => {
                     html += `<th>Expected: ${escapeHtml(out)}</th>`;
                 });
             }
@@ -814,54 +794,48 @@
             html += '<tbody>';
 
             // Add rows for each test case
-            Object.entries(module.functions).forEach(([funcName, funcDef]) => {
-                const tests = specs?.functions[funcName]?.tests || [];
-                const results = testResults?.[funcName] || [];
+            tests.forEach((test, testIndex) => {
+                const result = results[testIndex] || { passed: false };
                 
-                tests.forEach((test, testIndex) => {
-                    const result = results[testIndex] || { passed: false };
-                    
-                    html += '<tr>';
-                    html += `<td class="function-name-cell">${escapeHtml(funcName)}</td>`;
-                    html += `<td>${escapeHtml(test.description || `Test ${testIndex + 1}`)}</td>`;
-                    
-                    // Add input parameter values
-                    inputParamsList.forEach(param => {
-                        const value = test.input?.[param];
+                html += '<tr>';
+                html += `<td>${escapeHtml(test.description || `Test ${testIndex + 1}`)}</td>`;
+                
+                // Add input parameter values
+                inputParams.forEach(param => {
+                    const value = test.input?.[param];
+                    if (value !== undefined) {
+                        html += `<td class="test-value" title="${escapeHtml(formatValue(value))}">${escapeHtml(formatValue(value))}</td>`;
+                    } else {
+                        html += '<td class="test-value">-</td>';
+                    }
+                });
+                
+                // Add expected output values
+                if (typeof test.expectedOutput === 'object' && test.expectedOutput !== null && !Array.isArray(test.expectedOutput)) {
+                    outputNames.forEach(out => {
+                        const value = test.expectedOutput[out];
                         if (value !== undefined) {
                             html += `<td class="test-value" title="${escapeHtml(formatValue(value))}">${escapeHtml(formatValue(value))}</td>`;
                         } else {
                             html += '<td class="test-value">-</td>';
                         }
                     });
-                    
-                    // Add expected output values
-                    if (typeof test.expectedOutput === 'object' && test.expectedOutput !== null && !Array.isArray(test.expectedOutput)) {
-                        outputNamesList.forEach(out => {
-                            const value = test.expectedOutput[out];
-                            if (value !== undefined) {
-                                html += `<td class="test-value" title="${escapeHtml(formatValue(value))}">${escapeHtml(formatValue(value))}</td>`;
-                            } else {
-                                html += '<td class="test-value">-</td>';
-                            }
-                        });
-                    } else {
-                        html += `<td class="test-value" title="${escapeHtml(formatValue(test.expectedOutput))}">${escapeHtml(formatValue(test.expectedOutput))}</td>`;
-                        // Fill remaining output columns if any
-                        for (let i = 1; i < outputNamesList.length; i++) {
-                            html += '<td class="test-value">-</td>';
-                        }
+                } else {
+                    html += `<td class="test-value" title="${escapeHtml(formatValue(test.expectedOutput))}">${escapeHtml(formatValue(test.expectedOutput))}</td>`;
+                    // Fill remaining output columns if any
+                    for (let i = 1; i < outputNames.length; i++) {
+                        html += '<td class="test-value">-</td>';
                     }
-                    
-                    // Add status
-                    if (result.passed) {
-                        html += '<td class="status-passed"><span class="status-icon">✓</span> Passed</td>';
-                    } else {
-                        html += '<td class="status-failed"><span class="status-icon">✗</span> Failed</td>';
-                    }
-                    
-                    html += '</tr>';
-                });
+                }
+                
+                // Add status
+                if (result.passed) {
+                    html += '<td class="status-passed"><span class="status-icon">✓</span> Passed</td>';
+                } else {
+                    html += '<td class="status-failed"><span class="status-icon">✗</span> Failed</td>';
+                }
+                
+                html += '</tr>';
             });
 
             html += '</tbody></table>';
