@@ -9,5 +9,10 @@ module.exports = {
     '!src/**/*.d.ts'
   ],
   coverageDirectory: 'coverage',
-  coverageReporters: ['text', 'lcov', 'html', 'json-summary']
+  coverageReporters: ['text', 'lcov', 'html', 'json-summary'],
+  coverageThresholds: {
+    global: {
+      lines: 90
+    }
+  }
 };
