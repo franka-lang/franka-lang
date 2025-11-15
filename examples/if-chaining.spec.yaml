@@ -1,0 +1,30 @@
+functions:
+  main:
+    tests:
+      - description: "Default score 85 - B+ Great Job!"
+        expectedOutput: "B+ Great Job!"
+
+      - description: "Perfect score 100 - A+ Perfect Score!"
+        input:
+          score: 100
+        expectedOutput: "A+ Perfect Score!"
+
+      - description: "Score 90 - A Excellent!"
+        input:
+          score: 90
+        expectedOutput: "A Excellent!"
+
+      - description: "Score 80 - B Good Work!"
+        input:
+          score: 80
+        expectedOutput: "B Good Work!"
+
+      - description: "Score 70 - Keep Trying!"
+        input:
+          score: 70
+        expectedOutput: "Keep Trying!"
+
+      - description: "Score 0 - Keep Trying!"
+        input:
+          score: 0
+        expectedOutput: "Keep Trying!"

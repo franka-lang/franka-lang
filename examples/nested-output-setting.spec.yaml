@@ -1,0 +1,39 @@
+functions:
+  main:
+    tests:
+      - description: "Default - both conditions true"
+        expectedOutput:
+          foo: 1
+          bar: "A"
+
+      - description: "cond1 true, cond2 true"
+        input:
+          cond1: true
+          cond2: true
+        expectedOutput:
+          foo: 1
+          bar: "A"
+
+      - description: "cond1 true, cond2 false"
+        input:
+          cond1: true
+          cond2: false
+        expectedOutput:
+          foo: 1
+          bar: "B"
+
+      - description: "cond1 false, cond2 true"
+        input:
+          cond1: false
+          cond2: true
+        expectedOutput:
+          foo: 2
+          bar: "C"
+
+      - description: "cond1 false, cond2 false"
+        input:
+          cond1: false
+          cond2: false
+        expectedOutput:
+          foo: 2
+          bar: "C"

@@ -1,0 +1,39 @@
+functions:
+  main:
+    tests:
+      - description: "Default username alice and age 25"
+        expectedOutput:
+          greeting: "Hello, alice!"
+          category: "Young Adult"
+
+      - description: "Custom username bob and age 25"
+        input:
+          username: "bob"
+          age: 25
+        expectedOutput:
+          greeting: "Hello, bob!"
+          category: "Young Adult"
+
+      - description: "Custom username and age not matching default"
+        input:
+          username: "charlie"
+          age: 30
+        expectedOutput:
+          greeting: "Hello, charlie!"
+          category: "Other"
+
+      - description: "Empty username"
+        input:
+          username: ""
+          age: 25
+        expectedOutput:
+          greeting: "Hello, !"
+          category: "Young Adult"
+
+      - description: "Age 0"
+        input:
+          username: "test"
+          age: 0
+        expectedOutput:
+          greeting: "Hello, test!"
+          category: "Other"

@@ -1,0 +1,40 @@
+functions:
+  main:
+    tests:
+      - description: "Default score 85 - B+ grade"
+        expectedOutput:
+          grade: "B+"
+          passed: true
+          message: "Great job!"
+
+      - description: "Perfect score 100 - A+ grade"
+        input:
+          score: 100
+        expectedOutput:
+          grade: "A+"
+          passed: true
+          message: "Perfect score!"
+
+      - description: "Score 85 - B+ grade"
+        input:
+          score: 85
+        expectedOutput:
+          grade: "B+"
+          passed: true
+          message: "Great job!"
+
+      - description: "Score 90 - falls to else (F grade)"
+        input:
+          score: 90
+        expectedOutput:
+          grade: "F"
+          passed: false
+          message: "Better luck next time"
+
+      - description: "Score 0 - falls to else (F grade)"
+        input:
+          score: 0
+        expectedOutput:
+          grade: "F"
+          passed: false
+          message: "Better luck next time"

@@ -1,0 +1,64 @@
+functions:
+  main:
+    tests:
+      - description: "Default - active admin with 2FA"
+        expectedOutput:
+          access_granted: true
+          permission_level: "full"
+          message: "Admin access - 2FA verification required"
+          requires_verification: true
+
+      - description: "Active admin without 2FA"
+        input:
+          role: "admin"
+          is_active: true
+          requires_2fa: false
+        expectedOutput:
+          access_granted: true
+          permission_level: "full"
+          message: "Admin access granted"
+          requires_verification: false
+
+      - description: "Active regular user with 2FA"
+        input:
+          role: "user"
+          is_active: true
+          requires_2fa: true
+        expectedOutput:
+          access_granted: true
+          permission_level: "standard"
+          message: "Standard access - 2FA verification required"
+          requires_verification: true
+
+      - description: "Active regular user without 2FA"
+        input:
+          role: "user"
+          is_active: true
+          requires_2fa: false
+        expectedOutput:
+          access_granted: true
+          permission_level: "standard"
+          message: "Standard access granted"
+          requires_verification: false
+
+      - description: "Inactive admin"
+        input:
+          role: "admin"
+          is_active: false
+          requires_2fa: true
+        expectedOutput:
+          access_granted: false
+          permission_level: "none"
+          message: "Account is inactive"
+          requires_verification: false
+
+      - description: "Inactive user"
+        input:
+          role: "user"
+          is_active: false
+          requires_2fa: false
+        expectedOutput:
+          access_granted: false
+          permission_level: "none"
+          message: "Account is inactive"
+          requires_verification: false
