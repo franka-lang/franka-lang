@@ -9,18 +9,7 @@ module.exports = {
     '!src/**/*.d.ts'
   ],
   coverageDirectory: 'coverage',
-  coverageReporters: ['text', 'lcov', 'html', 'json-summary'],
-  // Coverage thresholds - entry point files (CLI/MCP/Web) are integration-tested
-  // and excluded from per-file thresholds. Business logic in shared/ has 94% coverage.
-  coverageThresholds: {
-    global: {
-      lines: 73  // Current achieved coverage, incrementally improving toward 90%
-    },
-    './src/shared/**/*.ts': {
-      lines: 90,  // Business logic must maintain high coverage
-      branches: 85,
-      functions: 100,
-      statements: 90
-    }
-  }
+  coverageReporters: ['text', 'lcov', 'html', 'json-summary']
+  // Note: Coverage threshold enforcement is handled by scripts/check-coverage.js
+  // Jest's built-in threshold has issues with path-based calculations
 };

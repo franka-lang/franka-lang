@@ -285,6 +285,48 @@ functions:
         if (fs.existsSync(tempSpec)) fs.unlinkSync(tempSpec);
       }
     });
+
+    test('should display single output type for function', () => {
+      const tempFile = '/tmp/test-single-output.yaml';
+      fs.writeFileSync(
+        tempFile,
+        `module:
+  name: Test Module
+functions:
+  test:
+    output:
+      type: string
+    logic: "test"
+`
+      );
+
+      try {
+        checkFile(tempFile, 'test');
+        expect(mockConsoleLog).toHaveBeenCalledWith(expect.stringContaining('Output: 1'));
+      } finally {
+        if (fs.existsSync(tempFile)) fs.unlinkSync(tempFile);
+      }
+    });
+
+    test('should display logic present status', () => {
+      const tempFile = '/tmp/test-logic-present.yaml';
+      fs.writeFileSync(
+        tempFile,
+        `module:
+  name: Test Module
+functions:
+  test:
+    logic: "test"
+`
+      );
+
+      try {
+        checkFile(tempFile, 'test');
+        expect(mockConsoleLog).toHaveBeenCalledWith(expect.stringContaining('Logic: present'));
+      } finally {
+        if (fs.existsSync(tempFile)) fs.unlinkSync(tempFile);
+      }
+    });
   });
 
   describe('startRepl', () => {

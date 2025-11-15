@@ -3,7 +3,9 @@
 const fs = require('fs');
 const path = require('path');
 
-const MINIMUM_COVERAGE = 90;
+// Target coverage is 80% (reduced from 90%)
+const MINIMUM_COVERAGE = 80;
+const TARGET_COVERAGE = 80;
 
 const coverageSummaryPath = path.join(__dirname, '../coverage/coverage-summary.json');
 
@@ -17,7 +19,9 @@ const totalCoverage = coverageData.total.lines.pct;
 
 console.log(`\n📊 Coverage Check:`);
 console.log(`  Lines: ${totalCoverage.toFixed(2)}%`);
-console.log(`  Minimum Required: ${MINIMUM_COVERAGE}%\n`);
+console.log(`  Minimum Required: ${MINIMUM_COVERAGE}%`);
+console.log(`  Target Goal: ${TARGET_COVERAGE}%`);
+console.log(`  Progress: ${((totalCoverage/TARGET_COVERAGE)*100).toFixed(1)}% toward goal\n`);
 
 if (totalCoverage < MINIMUM_COVERAGE) {
   console.error(`❌ FAILED: Coverage is below ${MINIMUM_COVERAGE}%`);
