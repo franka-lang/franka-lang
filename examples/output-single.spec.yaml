@@ -1,0 +1,23 @@
+functions:
+  main:
+    tests:
+      - description: "Default greeting and name"
+        expectedOutput: "Hello, World!"
+
+      - description: "Custom greeting and name"
+        input:
+          greeting: "Hi"
+          name: "Alice"
+        expectedOutput: "Hi, Alice!"
+
+      - description: "Empty name"
+        input:
+          greeting: "Hello"
+          name: ""
+        expectedOutput: "Hello, !"
+
+      - description: "Empty greeting"
+        input:
+          greeting: ""
+          name: "Bob"
+        expectedOutput: ", Bob!"
