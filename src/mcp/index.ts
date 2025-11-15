@@ -24,10 +24,10 @@ async function main() {
       description: 'Get all language operations and keywords',
       inputSchema: {},
       outputSchema: {
-        operations: z.record(z.any()),
-        string_operations: z.array(z.string()),
-        boolean_operations: z.array(z.string()),
-        control_operations: z.array(z.string()),
+        operations: z.record(z.array(z.any())),
+        string_operations: z.array(z.any()),
+        boolean_operations: z.array(z.any()),
+        control_operations: z.array(z.any()),
       },
     },
     async () => {
