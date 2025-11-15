@@ -131,6 +131,66 @@ describe('CLI Functions', () => {
       expect(mockConsoleLog).toHaveBeenCalledWith(expect.stringContaining('Functions:'));
     });
 
+    test('should display function with single output type', () => {
+      // The greet function doesn't have an explicit output, so it won't display output info
+      // Let's use get-set-basic which has multiple named outputs
+      checkFile(path.join(__dirname, '../../examples/get-set-basic.yaml'), 'main');
+      expect(mockConsoleLog).toHaveBeenCalledWith(expect.stringContaining('Outputs:'));
+    });
+
+    test('should display function input count', () => {
+      checkFile(
+        path.join(__dirname, '../../examples/conditional-outputs.yaml'),
+        'main'
+      );
+      expect(mockConsoleLog).toHaveBeenCalledWith(expect.stringContaining('Inputs:'));
+    });
+
+    test('should display multiple outputs', () => {
+      checkFile(path.join(__dirname, '../../examples/conditional-outputs.yaml'), 'main');
+      expect(mockConsoleLog).toHaveBeenCalledWith(expect.stringContaining('Outputs:'));
+    });
+
+    test('should run tests when spec file exists', () => {
+      checkFile(path.join(__dirname, '../../examples/string-operations.yaml'));
+      expect(mockConsoleLog).toHaveBeenCalledWith(expect.stringContaining('Running Tests'));
+    });
+
+    test('should display test results', () => {
+      checkFile(path.join(__dirname, '../../examples/string-operations.yaml'));
+      expect(mockConsoleLog).toHaveBeenCalledWith(expect.stringMatching(/Test Results:/));
+    });
+
+    test('should handle passing tests', () => {
+      const result = checkFile(path.join(__dirname, '../../examples/string-operations.yaml'));
+      expect(result.hasErrors).toBe(false);
+    });
+
+    test('should handle file without spec', () => {
+      // Use a file that doesn't have a spec
+      const tempFile = path.join(__dirname, '../../tmp-test-no-spec.yaml');
+      fs.writeFileSync(
+        tempFile,
+        `module:
+  name: Test Module
+functions:
+  main:
+    logic: "test"
+`
+      );
+
+      try {
+        checkFile(tempFile);
+        expect(mockConsoleLog).toHaveBeenCalledWith(
+          expect.stringContaining('No spec file found')
+        );
+      } finally {
+        if (fs.existsSync(tempFile)) {
+          fs.unlinkSync(tempFile);
+        }
+      }
+    });
+
     test('should throw error for invalid module structure', () => {
       const tempFile = path.join(__dirname, '../../tmp-test-invalid-structure.yaml');
       fs.writeFileSync(
@@ -151,6 +211,12 @@ functions:
           fs.unlinkSync(tempFile);
         }
       }
+    });
+
+    test('should handle checking all functions in a module', () => {
+      checkFile(path.join(__dirname, '../../examples/multi-function.yaml'));
+      // Should list all functions without specifying one
+      expect(mockConsoleLog).toHaveBeenCalledWith(expect.stringMatching(/greet/));
     });
   });
 
