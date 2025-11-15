@@ -1,5 +1,6 @@
 import { FrankaInterpreter, FrankaModule } from './interpreter';
 import * as path from 'path';
+import * as fs from 'fs';
 
 describe('FrankaInterpreter', () => {
   let interpreter: FrankaInterpreter;
@@ -1164,6 +1165,80 @@ describe('FrankaInterpreter', () => {
       expect(() => interpreter.getFunctionFromModule(module)).toThrow(
         'Module has no functions defined'
       );
+    });
+
+    it('should throw error for invalid function definition', () => {
+      const module = {
+        module: {
+          name: 'Test Module',
+        },
+        functions: {
+          badFunc: 'not an object' as any,
+        },
+      } as FrankaModule;
+
+      expect(() => interpreter.getFunctionFromModule(module, 'badFunc')).toThrow(
+        'not a valid function definition'
+      );
+    });
+
+    it('should throw error when loading module without module section', () => {
+      const tempFile = path.join(__dirname, '../../tmp-no-module-section.yaml');
+      fs.writeFileSync(
+        tempFile,
+        `
+functions:
+  test:
+    logic: "hello"
+`
+      );
+
+      try {
+        expect(() => interpreter.loadModule(tempFile)).toThrow('must contain "module" section');
+      } finally {
+        if (fs.existsSync(tempFile)) {
+          fs.unlinkSync(tempFile);
+        }
+      }
+    });
+
+    it('should throw error when loading module without functions section', () => {
+      const tempFile = path.join(__dirname, '../../tmp-no-functions.yaml');
+      fs.writeFileSync(
+        tempFile,
+        `
+module:
+  name: Test
+`
+      );
+
+      try {
+        expect(() => interpreter.loadModule(tempFile)).toThrow('must contain "functions" section');
+      } finally {
+        if (fs.existsSync(tempFile)) {
+          fs.unlinkSync(tempFile);
+        }
+      }
+    });
+
+    it('should throw error when module functions is not an object', () => {
+      const tempFile = path.join(__dirname, '../../tmp-functions-not-object.yaml');
+      fs.writeFileSync(
+        tempFile,
+        `
+module:
+  name: Test
+functions: "not an object"
+`
+      );
+
+      try {
+        expect(() => interpreter.loadModule(tempFile)).toThrow('"functions" must be an object');
+      } finally {
+        if (fs.existsSync(tempFile)) {
+          fs.unlinkSync(tempFile);
+        }
+      }
     });
   });
 

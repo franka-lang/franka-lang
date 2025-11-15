@@ -218,6 +218,73 @@ functions:
       // Should list all functions without specifying one
       expect(mockConsoleLog).toHaveBeenCalledWith(expect.stringMatching(/greet/));
     });
+
+    test('should detect and report failing tests', () => {
+      // Create a temporary module with a failing test
+      const tempModule = '/tmp/test-module-fail.yaml';
+      const tempSpec = '/tmp/test-module-fail.spec.yaml';
+
+      fs.writeFileSync(
+        tempModule,
+        `module:
+  name: Test Module
+functions:
+  main:
+    logic: "actual output"
+`
+      );
+
+      fs.writeFileSync(
+        tempSpec,
+        `functions:
+  main:
+    tests:
+      - description: "Should fail"
+        expectedOutput: "expected output"
+`
+      );
+
+      try {
+        expect(() => checkFile(tempModule)).toThrow('Checks failed');
+        expect(mockConsoleLog).toHaveBeenCalledWith(expect.stringMatching(/Test.*failed/));
+      } finally {
+        if (fs.existsSync(tempModule)) fs.unlinkSync(tempModule);
+        if (fs.existsSync(tempSpec)) fs.unlinkSync(tempSpec);
+      }
+    });
+
+    test('should handle errors during test execution', () => {
+      // Create a module with invalid logic
+      const tempModule = '/tmp/test-module-error.yaml';
+      const tempSpec = '/tmp/test-module-error.spec.yaml';
+
+      fs.writeFileSync(
+        tempModule,
+        `module:
+  name: Test Module
+functions:
+  main:
+    logic:
+      invalid_operation: "test"
+`
+      );
+
+      fs.writeFileSync(
+        tempSpec,
+        `functions:
+  main:
+    tests:
+      - expectedOutput: "anything"
+`
+      );
+
+      try {
+        expect(() => checkFile(tempModule)).toThrow();
+      } finally {
+        if (fs.existsSync(tempModule)) fs.unlinkSync(tempModule);
+        if (fs.existsSync(tempSpec)) fs.unlinkSync(tempSpec);
+      }
+    });
   });
 
   describe('startRepl', () => {
