@@ -81,6 +81,18 @@ npm run lint
 npm run format:check
 ```
 
+### Before Finalizing a PR
+
+**ALWAYS** verify the following before marking a PR as ready for review:
+
+1. **Build succeeds**: `npm run build` must complete without errors
+2. **All tests pass**: `npm test` must show all tests passing
+3. **Linting passes**: `npm run lint` must complete without errors
+4. **Formatting is correct**: `npm run format:check` must pass
+5. **No console errors**: Check that there are no unexpected console errors in logs
+
+If any of these checks fail, fix the issues before requesting review.
+
 ## Code Style and Conventions
 
 ### Formatting
