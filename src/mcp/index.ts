@@ -4,11 +4,16 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { z } from 'zod';
 import { loadLanguageSpec } from '../shared/spec-loader';
-import { FrankaInterpreter, FrankaFunction } from '../shared/interpreter';
-import { SpecRunner } from '../shared/spec-runner';
-import * as fs from 'fs';
-import * as path from 'path';
-import * as yaml from 'js-yaml';
+import {
+  createModule,
+  readModule,
+  updateModule,
+  deleteModule,
+  checkModule,
+  createSpecFile,
+  CreateModuleArgs,
+  UpdateModuleArgs,
+} from './handlers';
 
 async function main() {
   const spec = loadLanguageSpec();
@@ -43,8 +48,8 @@ async function main() {
         control_operations: spec.syntax.operations.control,
       };
       return {
-        content: [{ type: 'text', text: JSON.stringify(output, null, 2) }],
-        structuredContent: output,
+        content: [{ type: 'text' as const, text: JSON.stringify(output, null, 2) }],
+        structuredContent: output as unknown as Record<string, unknown>,
       };
     }
   );
@@ -68,8 +73,8 @@ async function main() {
         examples: spec.examples,
       };
       return {
-        content: [{ type: 'text', text: JSON.stringify(output, null, 2) }],
-        structuredContent: output,
+        content: [{ type: 'text' as const, text: JSON.stringify(output, null, 2) }],
+        structuredContent: output as unknown as Record<string, unknown>,
       };
     }
   );
@@ -118,73 +123,12 @@ async function main() {
         filePath: z.string(),
       },
     },
-    async ({ filePath, moduleName, moduleDescription, functions }) => {
-      try {
-        // Validate file path
-        if (!filePath.endsWith('.yaml') && !filePath.endsWith('.yml')) {
-          throw new Error('File path must end with .yaml or .yml');
-        }
-
-        // Check if file already exists
-        if (fs.existsSync(filePath)) {
-          throw new Error(`File already exists: ${filePath}`);
-        }
-
-        // Validate at least one function
-        if (!functions || Object.keys(functions).length === 0) {
-          throw new Error('At least one function is required');
-        }
-
-        // Validate each function has logic
-        for (const [funcName, func] of Object.entries(functions)) {
-          if (!func.logic) {
-            throw new Error(`Function "${funcName}" must have a "logic" field`);
-          }
-        }
-
-        // Create directory if it doesn't exist
-        const dir = path.dirname(filePath);
-        if (!fs.existsSync(dir)) {
-          fs.mkdirSync(dir, { recursive: true });
-        }
-
-        // Build module structure
-        const module = {
-          module: {
-            name: moduleName,
-            ...(moduleDescription && { description: moduleDescription }),
-          },
-          functions,
-        };
-
-        // Write module to file
-        const yamlContent = yaml.dump(module, {
-          lineWidth: -1,
-          noRefs: true,
-        });
-        fs.writeFileSync(filePath, yamlContent, 'utf8');
-
-        const output = {
-          success: true,
-          message: `Module created successfully at ${filePath}`,
-          filePath,
-        };
-
-        return {
-          content: [{ type: 'text', text: JSON.stringify(output, null, 2) }],
-          structuredContent: output,
-        };
-      } catch (error) {
-        const output = {
-          success: false,
-          message: error instanceof Error ? error.message : String(error),
-          filePath,
-        };
-        return {
-          content: [{ type: 'text', text: JSON.stringify(output, null, 2) }],
-          structuredContent: output,
-        };
-      }
+    async (args: any) => {
+      const output = createModule(args as CreateModuleArgs);
+      return {
+        content: [{ type: 'text' as const, text: JSON.stringify(output, null, 2) }],
+        structuredContent: output as unknown as Record<string, unknown>,
+      };
     }
   );
 
@@ -204,35 +148,12 @@ async function main() {
         module: z.any().optional(),
       },
     },
-    async ({ filePath }) => {
-      try {
-        if (!fs.existsSync(filePath)) {
-          throw new Error(`File not found: ${filePath}`);
-        }
-
-        const interpreter = new FrankaInterpreter();
-        const module = interpreter.loadModule(filePath);
-
-        const output = {
-          success: true,
-          message: 'Module read successfully',
-          module,
-        };
-
-        return {
-          content: [{ type: 'text', text: JSON.stringify(output, null, 2) }],
-          structuredContent: output,
-        };
-      } catch (error) {
-        const output = {
-          success: false,
-          message: error instanceof Error ? error.message : String(error),
-        };
-        return {
-          content: [{ type: 'text', text: JSON.stringify(output, null, 2) }],
-          structuredContent: output,
-        };
-      }
+    async (args) => {
+      const output = readModule(args);
+      return {
+        content: [{ type: 'text' as const, text: JSON.stringify(output, null, 2) }],
+        structuredContent: output as unknown as Record<string, unknown>,
+      };
     }
   );
 
@@ -303,104 +224,12 @@ async function main() {
         message: z.string(),
       },
     },
-    async ({
-      filePath,
-      moduleName,
-      moduleDescription,
-      addFunctions,
-      updateFunctions,
-      removeFunctions,
-    }) => {
-      try {
-        if (!fs.existsSync(filePath)) {
-          throw new Error(`File not found: ${filePath}`);
-        }
-
-        // Read existing module
-        const interpreter = new FrankaInterpreter();
-        const module = interpreter.loadModule(filePath);
-
-        // Update module metadata
-        if (moduleName !== undefined) {
-          module.module.name = moduleName;
-        }
-        if (moduleDescription !== undefined) {
-          module.module.description = moduleDescription;
-        }
-
-        // Add new functions
-        if (addFunctions) {
-          for (const [funcName, func] of Object.entries(addFunctions)) {
-            if (module.functions[funcName]) {
-              throw new Error(
-                `Function "${funcName}" already exists. Use updateFunctions instead.`
-              );
-            }
-            if (!func.logic) {
-              throw new Error(`Function "${funcName}" must have a "logic" field`);
-            }
-            // Cast to FrankaFunction since we've validated logic exists
-            module.functions[funcName] = func as FrankaFunction;
-          }
-        }
-
-        // Update existing functions
-        if (updateFunctions) {
-          for (const [funcName, updates] of Object.entries(updateFunctions)) {
-            if (!module.functions[funcName]) {
-              throw new Error(
-                `Function "${funcName}" does not exist. Use addFunctions to create it.`
-              );
-            }
-            // Merge updates with existing function
-            module.functions[funcName] = {
-              ...module.functions[funcName],
-              ...updates,
-            };
-          }
-        }
-
-        // Remove functions
-        if (removeFunctions) {
-          for (const funcName of removeFunctions) {
-            if (!module.functions[funcName]) {
-              throw new Error(`Function "${funcName}" does not exist`);
-            }
-            delete module.functions[funcName];
-          }
-        }
-
-        // Validate at least one function remains
-        if (Object.keys(module.functions).length === 0) {
-          throw new Error('Module must have at least one function');
-        }
-
-        // Write updated module back to file
-        const yamlContent = yaml.dump(module, {
-          lineWidth: -1,
-          noRefs: true,
-        });
-        fs.writeFileSync(filePath, yamlContent, 'utf8');
-
-        const output = {
-          success: true,
-          message: `Module updated successfully at ${filePath}`,
-        };
-
-        return {
-          content: [{ type: 'text', text: JSON.stringify(output, null, 2) }],
-          structuredContent: output,
-        };
-      } catch (error) {
-        const output = {
-          success: false,
-          message: error instanceof Error ? error.message : String(error),
-        };
-        return {
-          content: [{ type: 'text', text: JSON.stringify(output, null, 2) }],
-          structuredContent: output,
-        };
-      }
+    async (args: any) => {
+      const output = updateModule(args as UpdateModuleArgs);
+      return {
+        content: [{ type: 'text' as const, text: JSON.stringify(output, null, 2) }],
+        structuredContent: output as unknown as Record<string, unknown>,
+      };
     }
   );
 
@@ -425,49 +254,12 @@ async function main() {
         deletedFiles: z.array(z.string()),
       },
     },
-    async ({ filePath, deleteSpec = true }) => {
-      try {
-        const deletedFiles: string[] = [];
-
-        if (!fs.existsSync(filePath)) {
-          throw new Error(`File not found: ${filePath}`);
-        }
-
-        // Delete the module file
-        fs.unlinkSync(filePath);
-        deletedFiles.push(filePath);
-
-        // Delete spec file if requested
-        if (deleteSpec) {
-          const specRunner = new SpecRunner();
-          const specPath = specRunner.findSpecFile(filePath);
-          if (specPath && fs.existsSync(specPath)) {
-            fs.unlinkSync(specPath);
-            deletedFiles.push(specPath);
-          }
-        }
-
-        const output = {
-          success: true,
-          message: `Deleted ${deletedFiles.length} file(s)`,
-          deletedFiles,
-        };
-
-        return {
-          content: [{ type: 'text', text: JSON.stringify(output, null, 2) }],
-          structuredContent: output,
-        };
-      } catch (error) {
-        const output = {
-          success: false,
-          message: error instanceof Error ? error.message : String(error),
-          deletedFiles: [],
-        };
-        return {
-          content: [{ type: 'text', text: JSON.stringify(output, null, 2) }],
-          structuredContent: output,
-        };
-      }
+    async (args) => {
+      const output = deleteModule(args);
+      return {
+        content: [{ type: 'text' as const, text: JSON.stringify(output, null, 2) }],
+        structuredContent: output as unknown as Record<string, unknown>,
+      };
     }
   );
 
@@ -512,113 +304,12 @@ async function main() {
           .optional(),
       },
     },
-    async ({ filePath, functionName }) => {
-      try {
-        if (!fs.existsSync(filePath)) {
-          throw new Error(`File not found: ${filePath}`);
-        }
-
-        // Check syntax by loading module
-        const interpreter = new FrankaInterpreter();
-        const module = interpreter.loadModule(filePath);
-
-        // If specific function requested, validate it exists
-        if (functionName) {
-          interpreter.getFunctionFromModule(module, functionName);
-        }
-
-        const output: {
-          success: boolean;
-          syntaxValid: boolean;
-          message: string;
-          module?: unknown;
-          tests?: {
-            found: boolean;
-            specPath?: string;
-            results: Array<{
-              passed: boolean;
-              description?: string;
-              error?: string;
-              expected?: unknown;
-              actual?: unknown;
-            }>;
-            summary: {
-              total: number;
-              passed: number;
-              failed: number;
-            };
-          };
-        } = {
-          success: true,
-          syntaxValid: true,
-          message: 'Module syntax is valid',
-          module: {
-            name: module.module.name,
-            description: module.module.description,
-            functions: Object.keys(module.functions),
-          },
-        };
-
-        // Check for and run tests
-        const specRunner = new SpecRunner();
-        const specPath = specRunner.findSpecFile(filePath);
-
-        if (specPath) {
-          try {
-            const results = specRunner.runAllTests(filePath, specPath, functionName);
-            const passed = results.filter((r) => r.passed).length;
-            const failed = results.filter((r) => !r.passed).length;
-
-            output.tests = {
-              found: true,
-              specPath,
-              results,
-              summary: {
-                total: results.length,
-                passed,
-                failed,
-              },
-            };
-
-            if (failed > 0) {
-              output.success = false;
-              output.message = `Module syntax is valid but ${failed} test(s) failed`;
-            } else {
-              output.message = `Module syntax is valid and all ${passed} test(s) passed`;
-            }
-          } catch (error) {
-            output.tests = {
-              found: true,
-              specPath,
-              results: [],
-              summary: { total: 0, passed: 0, failed: 0 },
-            };
-            output.success = false;
-            output.message = `Module syntax is valid but test execution failed: ${error instanceof Error ? error.message : String(error)}`;
-          }
-        } else {
-          output.tests = {
-            found: false,
-            results: [],
-            summary: { total: 0, passed: 0, failed: 0 },
-          };
-        }
-
-        return {
-          content: [{ type: 'text', text: JSON.stringify(output, null, 2) }],
-          structuredContent: output,
-        };
-      } catch (error) {
-        const output = {
-          success: false,
-          syntaxValid: false,
-          message: `Syntax error: ${error instanceof Error ? error.message : String(error)}`,
-        };
-        return {
-          content: [{ type: 'text', text: JSON.stringify(output, null, 2) }],
-          structuredContent: output,
-        };
-      }
+    async (args) => {
+      const output = checkModule(args);
+      return {
+        content: [{ type: 'text' as const, text: JSON.stringify(output, null, 2) }],
+        structuredContent: output as unknown as Record<string, unknown>,
+      };
     }
   );
 
@@ -661,65 +352,12 @@ async function main() {
         specPath: z.string(),
       },
     },
-    async ({ modulePath, tests }) => {
-      try {
-        // Validate module exists
-        if (!fs.existsSync(modulePath)) {
-          throw new Error(`Module file not found: ${modulePath}`);
-        }
-
-        // Generate spec file path
-        const dir = path.dirname(modulePath);
-        const basename = path.basename(modulePath);
-        const nameWithoutExt = basename.replace(/\.(yaml|yml)$/i, '');
-        const specPath = path.join(dir, `${nameWithoutExt}.spec.yaml`);
-
-        // Validate module to ensure functions exist
-        const interpreter = new FrankaInterpreter();
-        const module = interpreter.loadModule(modulePath);
-
-        // Validate all test function names exist in module
-        for (const funcName of Object.keys(tests)) {
-          if (!module.functions[funcName]) {
-            throw new Error(
-              `Function "${funcName}" not found in module. Available: ${Object.keys(module.functions).join(', ')}`
-            );
-          }
-        }
-
-        // Create spec structure
-        const spec = {
-          functions: tests,
-        };
-
-        // Write spec file
-        const yamlContent = yaml.dump(spec, {
-          lineWidth: -1,
-          noRefs: true,
-        });
-        fs.writeFileSync(specPath, yamlContent, 'utf8');
-
-        const output = {
-          success: true,
-          message: `Spec file ${fs.existsSync(specPath) ? 'updated' : 'created'} successfully at ${specPath}`,
-          specPath,
-        };
-
-        return {
-          content: [{ type: 'text', text: JSON.stringify(output, null, 2) }],
-          structuredContent: output,
-        };
-      } catch (error) {
-        const output = {
-          success: false,
-          message: error instanceof Error ? error.message : String(error),
-          specPath: '',
-        };
-        return {
-          content: [{ type: 'text', text: JSON.stringify(output, null, 2) }],
-          structuredContent: output,
-        };
-      }
+    async (args) => {
+      const output = createSpecFile(args);
+      return {
+        content: [{ type: 'text' as const, text: JSON.stringify(output, null, 2) }],
+        structuredContent: output as unknown as Record<string, unknown>,
+      };
     }
   );
 

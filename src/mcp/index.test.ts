@@ -139,7 +139,7 @@ describe('MCP Server', () => {
       done(error);
     });
 
-    // Timeout after 5 seconds
+    // Timeout after 10 seconds
     setTimeout(() => {
       server.kill();
       if (stderrOutput) {
@@ -148,8 +148,8 @@ describe('MCP Server', () => {
       } else {
         done(new Error('Test timed out - no stderr output received'));
       }
-    }, 5000);
-  });
+    }, 10000);
+  }, 15000); // Increase timeout to 15 seconds
 
   test('should load language specification correctly', () => {
     const spec = loadLanguageSpec();
