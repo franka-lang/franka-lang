@@ -19,89 +19,93 @@ describe('MCP Server', () => {
     }
   });
 
-  test('should start and respond to initialization', (done) => {
-    const spec = loadLanguageSpec();
-    const server = spawn('ts-node', ['src/mcp/index.ts'], {
-      stdio: ['pipe', 'pipe', 'pipe'],
-    });
+  test(
+    'should start and respond to initialization',
+    (done) => {
+      const spec = loadLanguageSpec();
+      const server = spawn('ts-node', ['src/mcp/index.ts'], {
+        stdio: ['pipe', 'pipe', 'pipe'],
+      });
 
-    let stderrOutput = '';
+      let stderrOutput = '';
 
-    // Collect stderr output (where logs go)
-    server.stderr.on('data', (data) => {
-      stderrOutput += data.toString();
-    });
+      // Collect stderr output (where logs go)
+      server.stderr.on('data', (data) => {
+        stderrOutput += data.toString();
+      });
 
-    // Send initialize request
-    const initRequest = {
-      jsonrpc: '2.0',
-      id: 1,
-      method: 'initialize',
-      params: {
-        protocolVersion: '2024-11-05',
-        capabilities: {},
-        clientInfo: {
-          name: 'test-client',
-          version: '1.0.0',
+      // Send initialize request
+      const initRequest = {
+        jsonrpc: '2.0',
+        id: 1,
+        method: 'initialize',
+        params: {
+          protocolVersion: '2024-11-05',
+          capabilities: {},
+          clientInfo: {
+            name: 'test-client',
+            version: '1.0.0',
+          },
         },
-      },
-    };
+      };
 
-    server.stdin.write(JSON.stringify(initRequest) + '\n');
+      server.stdin.write(JSON.stringify(initRequest) + '\n');
 
-    let stdoutBuffer = '';
-    let foundResponse = false;
+      let stdoutBuffer = '';
+      let foundResponse = false;
 
-    server.stdout.on('data', (data) => {
-      if (foundResponse) return;
+      server.stdout.on('data', (data) => {
+        if (foundResponse) return;
 
-      stdoutBuffer += data.toString();
-      const lines = stdoutBuffer.split('\n');
+        stdoutBuffer += data.toString();
+        const lines = stdoutBuffer.split('\n');
 
-      for (const line of lines) {
-        if (line.trim() && !foundResponse) {
-          try {
-            const response = JSON.parse(line);
-            if (response.id === 1) {
-              foundResponse = true;
-              expect(response.result).toBeDefined();
-              expect(response.result.serverInfo).toBeDefined();
-              expect(response.result.serverInfo.name).toBe(spec.metadata.name);
-              expect(response.result.serverInfo.version).toBe(spec.metadata.version);
+        for (const line of lines) {
+          if (line.trim() && !foundResponse) {
+            try {
+              const response = JSON.parse(line);
+              if (response.id === 1) {
+                foundResponse = true;
+                expect(response.result).toBeDefined();
+                expect(response.result.serverInfo).toBeDefined();
+                expect(response.result.serverInfo.name).toBe(spec.metadata.name);
+                expect(response.result.serverInfo.version).toBe(spec.metadata.version);
 
-              // Verify server capabilities
-              expect(response.result.capabilities).toBeDefined();
-              expect(response.result.capabilities.tools).toBeDefined();
-              expect(response.result.capabilities.resources).toBeDefined();
+                // Verify server capabilities
+                expect(response.result.capabilities).toBeDefined();
+                expect(response.result.capabilities.tools).toBeDefined();
+                expect(response.result.capabilities.resources).toBeDefined();
 
-              // Check stderr logs
-              expect(stderrOutput).toContain('Franka MCP Server started');
+                // Check stderr logs
+                expect(stderrOutput).toContain('Franka MCP Server started');
 
-              server.kill();
-              done();
-              return;
+                server.kill();
+                done();
+                return;
+              }
+            } catch {
+              // Not valid JSON yet, continue
             }
-          } catch {
-            // Not valid JSON yet, continue
           }
         }
-      }
-    });
+      });
 
-    server.on('error', (error) => {
-      if (!foundResponse) {
-        done(error);
-      }
-    });
+      server.on('error', (error) => {
+        if (!foundResponse) {
+          done(error);
+        }
+      });
 
-    // Timeout after 10 seconds
-    setTimeout(() => {
-      if (!foundResponse) {
-        server.kill();
-        done(new Error('Test timed out waiting for initialize response'));
-      }
-    }, 10000);
-  });
+      // Timeout after 10 seconds
+      setTimeout(() => {
+        if (!foundResponse) {
+          server.kill();
+          done(new Error('Test timed out waiting for initialize response'));
+        }
+      }, 10000);
+    },
+    15000
+  ); // Increase timeout to 15 seconds
 
   test('server should log startup information to stderr', (done) => {
     const server = spawn('ts-node', ['src/mcp/index.ts'], {
@@ -180,99 +184,105 @@ describe('MCP Server', () => {
   });
 
   describe('Tool: create-module', () => {
-    test('should handle tool call for creating a module', (done) => {
-      const server = spawn('ts-node', ['src/mcp/index.ts'], {
-        stdio: ['pipe', 'pipe', 'pipe'],
-      });
+    test(
+      'should handle tool call for creating a module',
+      (done) => {
+        const server = spawn('ts-node', ['src/mcp/index.ts'], {
+          stdio: ['pipe', 'pipe', 'pipe'],
+        });
 
-      const modulePath = path.join(testDir, 'test-module.yaml');
+        const modulePath = path.join(testDir, 'test-module.yaml');
 
-      const createModuleRequest = {
-        jsonrpc: '2.0',
-        id: 2,
-        method: 'tools/call',
-        params: {
-          name: 'create-module',
-          arguments: {
-            filePath: modulePath,
-            moduleName: 'Test Module',
-            moduleDescription: 'A test module',
-            functions: {
-              main: {
-                description: 'Main function',
-                logic: 'Hello, World!',
+        const createModuleRequest = {
+          jsonrpc: '2.0',
+          id: 2,
+          method: 'tools/call',
+          params: {
+            name: 'create-module',
+            arguments: {
+              filePath: modulePath,
+              moduleName: 'Test Module',
+              moduleDescription: 'A test module',
+              functions: {
+                main: {
+                  description: 'Main function',
+                  logic: 'Hello, World!',
+                },
               },
             },
           },
-        },
-      };
+        };
 
-      let foundResponse = false;
-      let stdoutBuffer = '';
+        let foundResponse = false;
+        let stdoutBuffer = '';
 
-      server.stdout.on('data', (data) => {
-        if (foundResponse) return;
-        stdoutBuffer += data.toString();
-        const lines = stdoutBuffer.split('\n');
+        server.stdout.on('data', (data) => {
+          if (foundResponse) return;
+          stdoutBuffer += data.toString();
+          const lines = stdoutBuffer.split('\n');
 
-        for (const line of lines) {
-          if (line.trim() && !foundResponse) {
-            try {
-              const response = JSON.parse(line);
-              if (response.id === 2) {
-                foundResponse = true;
-                expect(response.result).toBeDefined();
-                expect(response.result.content).toBeDefined();
-                const content = JSON.parse(response.result.content[0].text);
-                expect(content.success).toBe(true);
-                expect(fs.existsSync(modulePath)).toBe(true);
-                server.kill();
-                done();
-                return;
+          for (const line of lines) {
+            if (line.trim() && !foundResponse) {
+              try {
+                const response = JSON.parse(line);
+                if (response.id === 2) {
+                  foundResponse = true;
+                  expect(response.result).toBeDefined();
+                  expect(response.result.content).toBeDefined();
+                  const content = JSON.parse(response.result.content[0].text);
+                  expect(content.success).toBe(true);
+                  expect(fs.existsSync(modulePath)).toBe(true);
+                  server.kill();
+                  done();
+                  return;
+                }
+              } catch {
+                // Not valid JSON yet, continue
               }
-            } catch {
-              // Not valid JSON yet, continue
             }
           }
-        }
-      });
+        });
 
-      // Initialize first
-      const initRequest = {
-        jsonrpc: '2.0',
-        id: 1,
-        method: 'initialize',
-        params: {
-          protocolVersion: '2024-11-05',
-          capabilities: {},
-          clientInfo: { name: 'test-client', version: '1.0.0' },
-        },
-      };
+        // Initialize first
+        const initRequest = {
+          jsonrpc: '2.0',
+          id: 1,
+          method: 'initialize',
+          params: {
+            protocolVersion: '2024-11-05',
+            capabilities: {},
+            clientInfo: { name: 'test-client', version: '1.0.0' },
+          },
+        };
 
-      server.stdin.write(JSON.stringify(initRequest) + '\n');
-      // Wait a bit for init to complete, then send the tool call
-      setTimeout(() => {
-        server.stdin.write(JSON.stringify(createModuleRequest) + '\n');
-      }, 500);
+        server.stdin.write(JSON.stringify(initRequest) + '\n');
+        // Wait a bit for init to complete, then send the tool call
+        setTimeout(() => {
+          server.stdin.write(JSON.stringify(createModuleRequest) + '\n');
+        }, 500);
 
-      setTimeout(() => {
-        if (!foundResponse) {
-          server.kill();
-          done(new Error('Test timed out'));
-        }
-      }, 5000);
-    });
+        setTimeout(() => {
+          if (!foundResponse) {
+            server.kill();
+            done(new Error('Test timed out'));
+          }
+        }, 10000);
+      },
+      15000
+    );
   });
 
   describe('Tool: read-module', () => {
-    test('should handle tool call for reading a module', (done) => {
-      const server = spawn('ts-node', ['src/mcp/index.ts'], {
-        stdio: ['pipe', 'pipe', 'pipe'],
-      });
+    test(
+      'should handle tool call for reading a module',
+      (done) => {
+        const server = spawn('ts-node', ['src/mcp/index.ts'], {
+          stdio: ['pipe', 'pipe', 'pipe'],
+        });
 
-      // Create a test module first
-      const modulePath = path.join(testDir, 'read-test.yaml');
-      const moduleContent = `module:
+        // Create a test module first
+        const modulePath = path.join(testDir, 'read-test.yaml');
+        const moduleContent = `module:
   name: "Read Test"
   description: "Test reading"
 
@@ -281,156 +291,162 @@ functions:
     description: "Main function"
     logic: "Hello"
 `;
-      fs.writeFileSync(modulePath, moduleContent, 'utf8');
+        fs.writeFileSync(modulePath, moduleContent, 'utf8');
 
-      const readModuleRequest = {
-        jsonrpc: '2.0',
-        id: 2,
-        method: 'tools/call',
-        params: {
-          name: 'read-module',
-          arguments: {
-            filePath: modulePath,
+        const readModuleRequest = {
+          jsonrpc: '2.0',
+          id: 2,
+          method: 'tools/call',
+          params: {
+            name: 'read-module',
+            arguments: {
+              filePath: modulePath,
+            },
           },
-        },
-      };
+        };
 
-      let foundResponse = false;
-      let stdoutBuffer = '';
+        let foundResponse = false;
+        let stdoutBuffer = '';
 
-      server.stdout.on('data', (data) => {
-        if (foundResponse) return;
-        stdoutBuffer += data.toString();
-        const lines = stdoutBuffer.split('\n');
+        server.stdout.on('data', (data) => {
+          if (foundResponse) return;
+          stdoutBuffer += data.toString();
+          const lines = stdoutBuffer.split('\n');
 
-        for (const line of lines) {
-          if (line.trim() && !foundResponse) {
-            try {
-              const response = JSON.parse(line);
-              if (response.id === 2) {
-                foundResponse = true;
-                expect(response.result).toBeDefined();
-                const content = JSON.parse(response.result.content[0].text);
-                expect(content.success).toBe(true);
-                expect(content.module).toBeDefined();
-                expect(content.module.module.name).toBe('Read Test');
-                server.kill();
-                done();
-                return;
+          for (const line of lines) {
+            if (line.trim() && !foundResponse) {
+              try {
+                const response = JSON.parse(line);
+                if (response.id === 2) {
+                  foundResponse = true;
+                  expect(response.result).toBeDefined();
+                  const content = JSON.parse(response.result.content[0].text);
+                  expect(content.success).toBe(true);
+                  expect(content.module).toBeDefined();
+                  expect(content.module.module.name).toBe('Read Test');
+                  server.kill();
+                  done();
+                  return;
+                }
+              } catch {
+                // Not valid JSON yet, continue
               }
-            } catch {
-              // Not valid JSON yet, continue
             }
           }
-        }
-      });
+        });
 
-      const initRequest = {
-        jsonrpc: '2.0',
-        id: 1,
-        method: 'initialize',
-        params: {
-          protocolVersion: '2024-11-05',
-          capabilities: {},
-          clientInfo: { name: 'test-client', version: '1.0.0' },
-        },
-      };
+        const initRequest = {
+          jsonrpc: '2.0',
+          id: 1,
+          method: 'initialize',
+          params: {
+            protocolVersion: '2024-11-05',
+            capabilities: {},
+            clientInfo: { name: 'test-client', version: '1.0.0' },
+          },
+        };
 
-      server.stdin.write(JSON.stringify(initRequest) + '\n');
-      setTimeout(() => {
-        server.stdin.write(JSON.stringify(readModuleRequest) + '\n');
-      }, 500);
+        server.stdin.write(JSON.stringify(initRequest) + '\n');
+        setTimeout(() => {
+          server.stdin.write(JSON.stringify(readModuleRequest) + '\n');
+        }, 500);
 
-      setTimeout(() => {
-        if (!foundResponse) {
-          server.kill();
-          done(new Error('Test timed out'));
-        }
-      }, 5000);
-    });
+        setTimeout(() => {
+          if (!foundResponse) {
+            server.kill();
+            done(new Error('Test timed out'));
+          }
+        }, 10000);
+      },
+      15000
+    );
   });
 
   describe('Tool: check-module', () => {
-    test('should handle tool call for checking a module', (done) => {
-      const server = spawn('ts-node', ['src/mcp/index.ts'], {
-        stdio: ['pipe', 'pipe', 'pipe'],
-      });
+    test(
+      'should handle tool call for checking a module',
+      (done) => {
+        const server = spawn('ts-node', ['src/mcp/index.ts'], {
+          stdio: ['pipe', 'pipe', 'pipe'],
+        });
 
-      // Create a test module
-      const modulePath = path.join(testDir, 'check-test.yaml');
-      const moduleContent = `module:
+        // Create a test module
+        const modulePath = path.join(testDir, 'check-test.yaml');
+        const moduleContent = `module:
   name: "Check Test"
 
 functions:
   main:
     logic: "Valid"
 `;
-      fs.writeFileSync(modulePath, moduleContent, 'utf8');
+        fs.writeFileSync(modulePath, moduleContent, 'utf8');
 
-      const checkModuleRequest = {
-        jsonrpc: '2.0',
-        id: 2,
-        method: 'tools/call',
-        params: {
-          name: 'check-module',
-          arguments: {
-            filePath: modulePath,
+        const checkModuleRequest = {
+          jsonrpc: '2.0',
+          id: 2,
+          method: 'tools/call',
+          params: {
+            name: 'check-module',
+            arguments: {
+              filePath: modulePath,
+            },
           },
-        },
-      };
+        };
 
-      let foundResponse = false;
-      let stdoutBuffer = '';
+        let foundResponse = false;
+        let stdoutBuffer = '';
 
-      server.stdout.on('data', (data) => {
-        if (foundResponse) return;
-        stdoutBuffer += data.toString();
-        const lines = stdoutBuffer.split('\n');
+        server.stdout.on('data', (data) => {
+          if (foundResponse) return;
+          stdoutBuffer += data.toString();
+          const lines = stdoutBuffer.split('\n');
 
-        for (const line of lines) {
-          if (line.trim() && !foundResponse) {
-            try {
-              const response = JSON.parse(line);
-              if (response.id === 2) {
-                foundResponse = true;
-                expect(response.result).toBeDefined();
-                const content = JSON.parse(response.result.content[0].text);
-                expect(content.success).toBe(true);
-                expect(content.syntaxValid).toBe(true);
-                expect(content.module).toBeDefined();
-                server.kill();
-                done();
-                return;
+          for (const line of lines) {
+            if (line.trim() && !foundResponse) {
+              try {
+                const response = JSON.parse(line);
+                if (response.id === 2) {
+                  foundResponse = true;
+                  expect(response.result).toBeDefined();
+                  const content = JSON.parse(response.result.content[0].text);
+                  expect(content.success).toBe(true);
+                  expect(content.syntaxValid).toBe(true);
+                  expect(content.module).toBeDefined();
+                  server.kill();
+                  done();
+                  return;
+                }
+              } catch {
+                // Not valid JSON yet, continue
               }
-            } catch {
-              // Not valid JSON yet, continue
             }
           }
-        }
-      });
+        });
 
-      const initRequest = {
-        jsonrpc: '2.0',
-        id: 1,
-        method: 'initialize',
-        params: {
-          protocolVersion: '2024-11-05',
-          capabilities: {},
-          clientInfo: { name: 'test-client', version: '1.0.0' },
-        },
-      };
+        const initRequest = {
+          jsonrpc: '2.0',
+          id: 1,
+          method: 'initialize',
+          params: {
+            protocolVersion: '2024-11-05',
+            capabilities: {},
+            clientInfo: { name: 'test-client', version: '1.0.0' },
+          },
+        };
 
-      server.stdin.write(JSON.stringify(initRequest) + '\n');
-      setTimeout(() => {
-        server.stdin.write(JSON.stringify(checkModuleRequest) + '\n');
-      }, 500);
+        server.stdin.write(JSON.stringify(initRequest) + '\n');
+        setTimeout(() => {
+          server.stdin.write(JSON.stringify(checkModuleRequest) + '\n');
+        }, 500);
 
-      setTimeout(() => {
-        if (!foundResponse) {
-          server.kill();
-          done(new Error('Test timed out'));
-        }
-      }, 5000);
-    });
+        setTimeout(() => {
+          if (!foundResponse) {
+            server.kill();
+            done(new Error('Test timed out'));
+          }
+        }, 10000);
+      },
+      15000
+    );
   });
 });

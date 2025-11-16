@@ -86,10 +86,7 @@ async function main() {
           .string()
           .describe('File path where the module will be created (must end with .yaml or .yml)'),
         moduleName: z.string().describe('Name of the module'),
-        moduleDescription: z
-          .string()
-          .optional()
-          .describe('Optional description of the module'),
+        moduleDescription: z.string().optional().describe('Optional description of the module'),
         functions: z
           .record(
             z.object({
@@ -335,7 +332,9 @@ async function main() {
         if (addFunctions) {
           for (const [funcName, func] of Object.entries(addFunctions)) {
             if (module.functions[funcName]) {
-              throw new Error(`Function "${funcName}" already exists. Use updateFunctions instead.`);
+              throw new Error(
+                `Function "${funcName}" already exists. Use updateFunctions instead.`
+              );
             }
             if (!func.logic) {
               throw new Error(`Function "${funcName}" must have a "logic" field`);
