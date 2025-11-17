@@ -129,6 +129,141 @@ npm run mcp
 npm run mcp -- --port=3002
 ```
 
+The MCP server provides AI integration capabilities for working with Franka modules. It includes:
+
+#### Available Tools
+
+1. **get-keywords** - Get all language operations and keywords
+   - Returns string, boolean, and control operations
+   - Useful for understanding available language features
+
+2. **get-language-syntax** - Get complete Franka language syntax specification
+   - Returns full syntax documentation including module structure
+   - Includes examples demonstrating language features
+   - Essential for understanding how to write valid Franka code
+
+3. **create-module** - Create a new Franka module
+   - Creates a new module file with specified functions
+   - Validates module structure before creation
+   - Parameters:
+     - `filePath`: Where to create the module (must end with .yaml or .yml)
+     - `moduleName`: Name of the module
+     - `moduleDescription`: Optional description
+     - `functions`: Object containing function definitions (at least one required)
+   - Each function must have a `logic` field
+
+4. **read-module** - Read an existing Franka module
+   - Parses and returns the complete module structure
+   - Includes metadata and all function definitions
+   - Parameter: `filePath` - Path to the module file
+
+5. **update-module** - Update an existing Franka module
+   - Add new functions, modify existing functions, or remove functions
+   - Update module metadata (name, description)
+   - Parameters:
+     - `filePath`: Path to the module to update
+     - `moduleName`: Optional new module name
+     - `moduleDescription`: Optional new module description
+     - `addFunctions`: Functions to add (must not already exist)
+     - `updateFunctions`: Functions to modify (must already exist)
+     - `removeFunctions`: Array of function names to remove
+
+6. **delete-module** - Delete a Franka module
+   - Removes the module file and optionally its spec file
+   - Parameters:
+     - `filePath`: Path to the module to delete
+     - `deleteSpec`: Whether to also delete the spec file (default: true)
+
+7. **check-module** - Check a Franka module for syntax and run tests
+   - Validates module syntax by loading and parsing it
+   - Automatically discovers and runs spec file tests if present
+   - Returns detailed results including test pass/fail status
+   - Parameters:
+     - `filePath`: Path to the module to check
+     - `functionName`: Optional specific function to check
+
+8. **create-spec-file** - Create or update a test specification file
+   - Creates test cases for module functions
+   - Follows naming convention: `<module_name>.spec.yaml`
+   - Parameters:
+     - `modulePath`: Path to the module
+     - `tests`: Object mapping function names to test arrays
+   - Each test case includes:
+     - `description`: Optional test description
+     - `input`: Optional input values
+     - `expectedOutput`: Expected output value or object
+
+#### Available Resources
+
+- `franka://spec/syntax` - Language syntax specification
+- `franka://spec/examples` - Code examples
+- `franka://spec/metadata` - Language metadata
+- `franka://spec/complete` - Complete specification
+
+#### Example MCP Usage
+
+Create a simple calculator module:
+
+```json
+{
+  "name": "create-module",
+  "arguments": {
+    "filePath": "./calculator.yaml",
+    "moduleName": "Calculator",
+    "moduleDescription": "Simple arithmetic operations",
+    "functions": {
+      "add": {
+        "description": "Add two numbers",
+        "input": {
+          "a": {"type": "number", "default": 0},
+          "b": {"type": "number", "default": 0}
+        },
+        "logic": {
+          "concat": [
+            {"get": "a"},
+            " + ",
+            {"get": "b"}
+          ]
+        }
+      }
+    }
+  }
+}
+```
+
+Add tests for the module:
+
+```json
+{
+  "name": "create-spec-file",
+  "arguments": {
+    "modulePath": "./calculator.yaml",
+    "tests": {
+      "add": {
+        "tests": [
+          {
+            "description": "Add 5 and 3",
+            "input": {"a": 5, "b": 3},
+            "expectedOutput": "5 + 3"
+          }
+        ]
+      }
+    }
+  }
+}
+```
+
+Check the module and run tests:
+
+```json
+{
+  "name": "check-module",
+  "arguments": {
+    "filePath": "./calculator.yaml"
+  }
+}
+```
+
 ### Web Server
 
 Start the web API server:
