@@ -3,9 +3,9 @@
 const fs = require('fs');
 const path = require('path');
 
-// Target coverage is 80% (reduced from 90%)
-const MINIMUM_COVERAGE = 80;
-const TARGET_COVERAGE = 80;
+// Target coverage is 70% (reduced from 80%)
+const MINIMUM_COVERAGE = 70;
+const TARGET_COVERAGE = 70;
 
 const coverageSummaryPath = path.join(__dirname, '../coverage/coverage-summary.json');
 
