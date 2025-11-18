@@ -1,58 +1,32 @@
 import * as fs from 'fs';
 import * as yaml from 'js-yaml';
+import {
+  FrankaValue,
+  FrankaLogic,
+  FrankaExpression,
+  FrankaModule,
+  FrankaFunction,
+  FrankaProgram,
+  InputDefinition,
+  OutputDefinition,
+  OutputDeclaration,
+  FrankaOperation,
+  isSingleOutput,
+} from './types';
 
-export type FrankaValue = string | number | boolean | null;
-
-// Logic types for the pure functional language
-export type FrankaLogic =
-  | FrankaValue
-  | { [key: string]: unknown } // Operations and let bindings
-  | FrankaLogic[]; // Arrays in concat, and, or
-
-export interface InputDefinition {
-  type: 'string' | 'number' | 'boolean';
-  default?: FrankaValue;
-}
-
-export interface OutputDefinition {
-  type: 'string' | 'number' | 'boolean';
-}
-
-// Function definition within a module
-export interface FrankaFunction {
-  description?: string;
-  input?: Record<string, InputDefinition>;
-  output?:
-    | { type: 'string' | 'number' | 'boolean' } // Single unnamed output
-    | Record<string, OutputDefinition>; // Multiple named outputs
-  logic: FrankaLogic;
-}
-
-// Module structure
-export interface FrankaModule {
-  module: {
-    name: string;
-    description?: string;
-  };
-  functions: Record<string, FrankaFunction>;
-}
-
-// Legacy program structure (for backward compatibility)
-export interface FrankaProgram {
-  program: {
-    name: string;
-    description?: string;
-  };
-  input?: Record<string, InputDefinition>;
-  output?:
-    | { type: 'string' | 'number' | 'boolean' } // Single unnamed output
-    | Record<string, OutputDefinition>; // Multiple named outputs
-  logic: FrankaLogic;
-}
-
-export interface FrankaOperation {
-  [key: string]: unknown; // Operation name as key, parameters as value
-}
+// Re-export types for backward compatibility
+export {
+  FrankaValue,
+  FrankaLogic,
+  FrankaExpression,
+  FrankaModule,
+  FrankaFunction,
+  FrankaProgram,
+  InputDefinition,
+  OutputDefinition,
+  OutputDeclaration,
+  FrankaOperation,
+};
 
 export class FrankaInterpreter {
   private variables: Record<string, FrankaValue> = {};
@@ -160,11 +134,9 @@ export class FrankaInterpreter {
     return result;
   }
 
-  private validateOutput(
-    output: { type: 'string' | 'number' | 'boolean' } | Record<string, OutputDefinition>
-  ): void {
+  private validateOutput(output: OutputDeclaration): void {
     // Check if it's a single unnamed output
-    if ('type' in output && typeof output.type === 'string') {
+    if (isSingleOutput(output)) {
       const validTypes = ['string', 'number', 'boolean'];
       if (!validTypes.includes(output.type)) {
         throw new Error(`Invalid output type: ${output.type}`);
@@ -242,12 +214,12 @@ export class FrankaInterpreter {
 
     // Check if this is a flat if/then/else structure
     if (keys.includes('if') && (keys.includes('then') || keys.includes('else'))) {
-      return this.executeIf(logic);
+      return this.executeIf(logic as Record<string, unknown>);
     }
 
     // Check if this is a flat let/in structure
     if (keys.includes('let') && keys.includes('in')) {
-      return this.executeLet(logic);
+      return this.executeLet(logic as Record<string, unknown>);
     }
 
     // Check for malformed let or if structures
@@ -259,7 +231,7 @@ export class FrankaInterpreter {
     }
 
     const operationName = keys[0];
-    const operationArgs = logic[operationName];
+    const operationArgs = (logic as Record<string, unknown>)[operationName];
 
     switch (operationName) {
       case 'get':
