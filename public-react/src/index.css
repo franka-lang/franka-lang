@@ -584,62 +584,8 @@ body {
     font-size: 12px;
     font-weight: 600;
     text-transform: lowercase;
-}
-
-.type-string {
-    background-color: #ffeaa7;
-    color: #d63031;
-}
-
-.type-number {
-    background-color: #74b9ff;
-    color: #0984e3;
-}
-
-.type-boolean {
     background-color: #dfe6e9;
     color: #2d3436;
-}
-
-.type-null {
-    background-color: #b2bec3;
-    color: #636e72;
-}
-
-.type-operation {
-    background-color: #fab1a0;
-    color: #e17055;
-}
-
-.type-array {
-    background-color: #a29bfe;
-    color: #6c5ce7;
-}
-
-.type-let-binding,
-.type-let-in {
-    background-color: #fd79a8;
-    color: #e84393;
-}
-
-.type-conditional {
-    background-color: #fdcb6e;
-    color: #e17055;
-}
-
-.type-expression {
-    background-color: #81ecec;
-    color: #00b894;
-}
-
-.type-object {
-    background-color: #dfe6e9;
-    color: #2d3436;
-}
-
-.type-unknown {
-    background-color: #b2bec3;
-    color: #636e72;
 }
 
 .value-display {
